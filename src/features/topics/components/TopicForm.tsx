@@ -82,7 +82,6 @@ export default function TopicForm({
             topics={topics}
             value={parentId}
             onChange={setParentId}
-            name="parentId"
           />
         </div>
 
