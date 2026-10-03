@@ -1,0 +1,237 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum QuestionStatus {
+  OPEN
+  RESOLVED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  emailVerified Boolean @default(false)
+  image         String?
+
+  notes     Note[]
+  topics    Topic[]   @relation("UserTopics")
+  questions Question[]
+  snippets  Snippet[]
+  tags      Tag[]
+
+  sessions Session[]
+  accounts Account[]
+
+  @@map("User")
+}
+
+model Topic {
+  id              String   @id @default(cuid())
+  name            String
+  slug            String
+  description     String
+  parentId        String?
+  createdByUserId String?
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  parent        Topic?  @relation("TopicHierarchy", fields: [parentId], references: [id], onDelete: Restrict)
+  children      Topic[] @relation("TopicHierarchy")
+  createdByUser User?   @relation("UserTopics", fields: [createdByUserId], references: [id], onDelete: Cascade)
+
+  notes     Note[]
+  questions Question[]
+  snippets  Snippet[]
+
+  @@unique([createdByUserId, slug])
+  @@index([parentId, sortOrder])
+  @@index([createdByUserId])
+}
+
+model Note {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  userId    String
+  topicId   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic         Topic?        @relation(fields: [topicId], references: [id], onDelete: SetNull)
+  questionNotes QuestionNote[]
+  noteTags      NoteTag[]
+
+  @@index([userId])
+  @@index([topicId])
+  @@index([userId, topicId])
+}
+
+model Question {
+  id         String         @id @default(cuid())
+  question   String
+  answer     String?
+  status     QuestionStatus @default(OPEN)
+  resolvedAt DateTime?
+  userId     String
+  topicId    String?
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic         Topic?        @relation(fields: [topicId], references: [id], onDelete: SetNull)
+  questionNotes QuestionNote[]
+  questionTags  QuestionTag[]
+
+  @@index([userId])
+  @@index([userId, status])
+  @@index([topicId])
+}
+
+model QuestionNote {
+  id         String   @id @default(cuid())
+  questionId String
+  noteId     String
+  createdAt  DateTime @default(now())
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  note     Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@unique([questionId, noteId])
+  @@index([questionId])
+  @@index([noteId])
+}
+
+model Snippet {
+  id          String   @id @default(cuid())
+  title       String
+  language    String
+  code        String
+  description String?
+  userId      String
+  topicId     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic       Topic?       @relation(fields: [topicId], references: [id], onDelete: SetNull)
+  snippetTags SnippetTag[]
+
+  @@index([userId])
+  @@index([topicId])
+  @@index([userId, topicId])
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  noteTags     NoteTag[]
+  questionTags QuestionTag[]
+  snippetTags  SnippetTag[]
+
+  @@unique([userId, name])
+}
+
+model NoteTag {
+  id        String   @id @default(cuid())
+  noteId    String
+  tagId     String
+  createdAt DateTime @default(now())
+
+  note Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([noteId, tagId])
+  @@index([tagId])
+}
+
+model QuestionTag {
+  id         String   @id @default(cuid())
+  questionId String
+  tagId      String
+  createdAt  DateTime @default(now())
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  tag      Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([questionId, tagId])
+  @@index([tagId])
+}
+
+model SnippetTag {
+  id        String   @id @default(cuid())
+  snippetId String
+  tagId     String
+  createdAt DateTime @default(now())
+
+  snippet Snippet @relation(fields: [snippetId], references: [id], onDelete: Cascade)
+  tag     Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([snippetId, tagId])
+  @@index([tagId])
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                   String    @id
+  accountId            String
+  providerId           String
+  userId               String
+  accessToken          String?
+  refreshToken         String?
+  idToken              String?
+  accessTokenExpiresAt DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                String?
+  password             String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
