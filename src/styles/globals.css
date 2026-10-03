@@ -95,6 +95,9 @@
   --radius-sm: var(--ds-radius-sm);
   --radius-md: var(--ds-radius-md);
   --radius-lg: var(--ds-radius-lg);
+
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-space-grotesk);
 }
 
 * {
@@ -102,14 +105,16 @@
   }
 
 html {
-min-height: 100%;
+  min-height: 100%;
 }
 
 body {
-min-height: 100vh;
-margin: 0;
-background: var(--ds-background);
-color: var(--ds-text-primary);
+  min-height: 100vh;
+  margin: 0;
+  background: var(--ds-background);
+  color: var(--ds-text-primary);
+  font-family: var(--font-inter), sans-serif;
+
 }
 
 button,

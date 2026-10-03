@@ -20,6 +20,20 @@ export const metadata: Metadata = {
   description: "Personal developer knowledge and learning workspace.",
 };
 
+import { Inter, Space_Grotesk } from "next/font/google";
+
+export const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+export const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-space-grotesk",
+  display: "swap",
+});
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -27,7 +41,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geist.variable} ${geistMono.variable}`}>
+      <body className={`${geist.variable} ${geistMono.variable} ${inter.variable} ${spaceGrotesk.variable}`}>
         {children}
       </body>
     </html>

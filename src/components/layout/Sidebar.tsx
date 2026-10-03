@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 
 import { navigationItems } from "@/config/navigation";
 import UserMenu from "@/features/auth/components/UserMenu";
+import DevCoreLogo from "../ui/DevCoreLogo";
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -16,10 +17,7 @@ export default function Sidebar() {
       return pathname === "/";
     }
 
-    return (
-      pathname === href ||
-      pathname.startsWith(`${href}/`)
-    );
+    return pathname === href || pathname.startsWith(`${href}/`);
   }
 
   useEffect(() => {
@@ -40,10 +38,7 @@ export default function Sidebar() {
     document.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      document.removeEventListener(
-        "keydown",
-        handleKeyDown,
-      );
+      document.removeEventListener("keydown", handleKeyDown);
     };
   }, [isOpen]);
 
@@ -75,9 +70,7 @@ export default function Sidebar() {
       <aside
         className={[
           "fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-border bg-surface transition-transform duration-200",
-          isOpen
-            ? "translate-x-0"
-            : "-translate-x-full",
+          isOpen ? "translate-x-0" : "-translate-x-full",
           "md:translate-x-0",
         ].join(" ")}
       >
@@ -85,9 +78,10 @@ export default function Sidebar() {
           <Link
             href="/"
             onClick={() => setIsOpen(false)}
-            className="text-xl font-semibold tracking-tight text-text-primary"
+            className="text-xl font-semibold tracking-tight text-text-primary flex items-center gap-2"
           >
-            DevCore
+            <DevCoreLogo size={32} />
+            <span className="ml-2 font-display">DevCore</span>
           </Link>
 
           <button
@@ -112,9 +106,7 @@ export default function Sidebar() {
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    aria-current={
-                      active ? "page" : undefined
-                    }
+                    aria-current={active ? "page" : undefined}
                     onClick={() => setIsOpen(false)}
                     className={
                       active
