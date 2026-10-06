@@ -2,6 +2,7 @@ import AppShell from "@/components/layout/AppShell";
 import NoteEditor from "@/features/notes/components/NoteEditor";
 import { getTags } from "@/server/tags/queries";
 import { getTopics } from "@/server/topics/queries";
+import Link from "next/link";
 
 export const metadata = {
   title: "New Note",
@@ -13,6 +14,14 @@ export default async function NewNotePage() {
   return (
     <AppShell>
       <div className="px-6 py-8 lg:px-10 ">
+        <div className="mb-6">
+          <Link
+            href={`/notes}`}
+            className="text-sm text-text-muted transition-colors hover:text-text-primary"
+          >
+            ← Back to Note
+          </Link>
+        </div>
         <header>
           <p className="text-sm font-medium text-accent">Notes</p>
 
