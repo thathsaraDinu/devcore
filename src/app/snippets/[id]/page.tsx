@@ -30,7 +30,7 @@ export default async function SnippetPage({ params }: SnippetPageProps) {
   return (
     <AppShell>
       <div className="px-6 py-8 lg:px-10 ">
-        <div className="mb-8">
+        <div className="mb-6">
           <Link
             href="/snippets"
             className="text-sm text-text-muted transition-colors hover:text-text-primary"

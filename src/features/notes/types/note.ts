@@ -1,4 +1,5 @@
-import { Tag } from "@/features/tags/types/tag";
+import type { JSONContent } from "@tiptap/react";
+import type { Tag } from "@/features/tags/types/tag";
 
 export type NoteTopic = {
   id: string;
@@ -10,7 +11,7 @@ export type NoteTopic = {
 export type Note = {
   id: string;
   title: string;
-  content: string;
+  content: JSONContent;
   topicId: string | null;
   topic: NoteTopic | null;
   topicPath: string[];

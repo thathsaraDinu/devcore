@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 
+import { getNotePreview } from "@/features/notes/utils/getNotePreview";
 import type { Note } from "@/features/notes/types/note";
 
 type NotePickerProps = {
@@ -30,9 +31,10 @@ export default function NotePicker({
     }
 
     return notes.filter((note) => {
+      const contentPreview = getNotePreview(note.content);
       return (
         note.title.toLowerCase().includes(normalizedQuery) ||
-        note.content.toLowerCase().includes(normalizedQuery) ||
+        contentPreview.toLowerCase().includes(normalizedQuery) ||
         note.topicPath.some((topic) =>
           topic.toLowerCase().includes(normalizedQuery),
         )
@@ -55,14 +57,10 @@ export default function NotePicker({
         className="flex w-full items-center justify-between gap-3 rounded-md border border-border bg-surface px-3 py-2.5 text-left text-sm text-text-primary outline-none transition-colors hover:border-border-hover focus:border-accent disabled:cursor-not-allowed disabled:opacity-50"
       >
         <span className="min-w-0 truncate">
-          {selectedNote
-            ? selectedNote.title
-            : "Select a note..."}
+          {selectedNote ? selectedNote.title : "Select a note..."}
         </span>
 
-        <span className="shrink-0 text-text-muted">
-          {isOpen ? "↑" : "↓"}
-        </span>
+        <span className="shrink-0 text-text-muted">{isOpen ? "↑" : "↓"}</span>
       </button>
 
       {isOpen && (
@@ -72,9 +70,7 @@ export default function NotePicker({
               type="search"
               autoFocus
               value={searchQuery}
-              onChange={(event) =>
-                setSearchQuery(event.target.value)
-              }
+              onChange={(event) => setSearchQuery(event.target.value)}
               placeholder="Search notes..."
               className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-text-primary outline-none placeholder:text-text-muted focus:border-accent"
             />
@@ -101,15 +97,13 @@ export default function NotePicker({
                     </p>
 
                     <p className="mt-1 line-clamp-1 text-xs text-text-muted">
-                      {note.content}
+                      {getNotePreview(note.content)}
                     </p>
                   </button>
                 ))}
               </div>
             ) : (
-              <p className="p-4 text-sm text-text-muted">
-                No notes found.
-              </p>
+              <p className="p-4 text-sm text-text-muted">No notes found.</p>
             )}
           </div>
         </div>

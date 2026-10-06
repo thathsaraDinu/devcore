@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import AppShell from "@/components/layout/AppShell";
+import { renderRichText } from "@/components/editor/renderRichText";
 import DeleteQuestionButton from "@/features/questions/components/DeleteQuestionButton";
 import QuestionNotesReader from "@/features/questions/components/QuestionNotesReader";
 import QuestionStatusButton from "@/features/questions/components/QuestionStatusButton";
@@ -34,10 +35,12 @@ export default async function QuestionPage({ params }: QuestionPageProps) {
     notFound();
   }
 
+  const answerHtml = question.answer ? renderRichText(question.answer) : null;
+
   return (
     <AppShell>
-      <div className="px-6 py-8 lg:px-10 lg:py-10">
-        <div className="mb-8">
+      <div className="px-6 py-8 lg:px-10">
+        <div className="mb-6">
           <Link
             href="/questions"
             className="text-sm text-text-muted transition-colors hover:text-text-primary"
@@ -92,10 +95,11 @@ export default async function QuestionPage({ params }: QuestionPageProps) {
             <section className="mt-10">
               <h2 className="text-sm font-medium text-text-primary">Answer</h2>
 
-              {question.answer ? (
-                <div className="mt-4 whitespace-pre-wrap text-base leading-8 text-text-secondary">
-                  {question.answer}
-                </div>
+              {answerHtml ? (
+                <div
+                  className="devcore-editor prose prose-invert mt-4 max-w-none"
+                  dangerouslySetInnerHTML={{ __html: answerHtml }}
+                />
               ) : (
                 <div className="mt-4 rounded-lg border border-dashed border-border p-6">
                   <p className="text-sm text-text-muted">

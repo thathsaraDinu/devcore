@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import type { JSONContent } from "@tiptap/react";
 
 import { prisma } from "@/server/db/prisma";
 import { requireCurrentUser } from "@/server/users/queries";
@@ -10,16 +11,30 @@ import { requireOwnedTags } from "../tags/access";
 
 type NoteInput = {
   title: string;
-  content: string;
+  content: JSONContent;
   topicId: string | null;
   tagIds: string[];
 };
+
+function hasRichTextContent(content: JSONContent): boolean {
+  if (!content.content) {
+    return false;
+  }
+
+  return content.content.some((node: JSONContent) => {
+    if (node.type === "text") {
+      return Boolean(node.text?.trim());
+    }
+
+    return hasRichTextContent(node);
+  });
+}
 
 export async function createNote(input: NoteInput) {
   const user = await requireCurrentUser();
 
   const title = input.title.trim();
-  const content = input.content.trim();
+  const content = input.content;
   const topicId = input.topicId || null;
   const tagIds = input.tagIds ?? [];
 
@@ -27,7 +42,7 @@ export async function createNote(input: NoteInput) {
     throw new Error("Title is required.");
   }
 
-  if (!content) {
+  if (!hasRichTextContent(content)) {
     throw new Error("Content is required.");
   }
 
@@ -43,7 +58,7 @@ export async function createNote(input: NoteInput) {
     const note = await tx.note.create({
       data: {
         title,
-        content,
+        content: content as any,
         topicId,
         userId: user.id,
       },
@@ -63,14 +78,11 @@ export async function createNote(input: NoteInput) {
   redirect("/notes");
 }
 
-export async function updateNote(
-  id: string,
-  input: NoteInput,
-) {
+export async function updateNote(id: string, input: NoteInput) {
   const user = await requireCurrentUser();
 
   const title = input.title.trim();
-  const content = input.content.trim();
+  const content = input.content;
   const topicId = input.topicId || null;
   const tagIds = input.tagIds ?? [];
 
@@ -78,7 +90,7 @@ export async function updateNote(
     throw new Error("Title is required.");
   }
 
-  if (!content) {
+  if (!hasRichTextContent(content)) {
     throw new Error("Content is required.");
   }
 
@@ -111,7 +123,7 @@ export async function updateNote(
       },
       data: {
         title,
-        content,
+        content: content as any,
         topicId,
       },
     });
@@ -134,6 +146,7 @@ export async function updateNote(
 
   revalidatePath("/notes");
   revalidatePath(`/notes/${id}`);
+
   redirect(`/notes/${id}`);
 }
 

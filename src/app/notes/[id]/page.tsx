@@ -2,9 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import AppShell from "@/components/layout/AppShell";
+import { renderRichText } from "@/components/editor/renderRichText";
 import DeleteNoteButton from "@/features/notes/components/DeleteNoteButton";
-import { getNoteById } from "@/server/notes/queries";
 import TagList from "@/features/tags/components/TagList";
+import { getNoteById } from "@/server/notes/queries";
 
 type NotePageProps = {
   params: Promise<{
@@ -21,10 +22,12 @@ export default async function NotePage({ params }: NotePageProps) {
     notFound();
   }
 
+  const html = renderRichText(note.content);
+
   return (
     <AppShell>
-      <div className="px-6 py-8 lg:px-10 ">
-        <div className="mb-8">
+      <div className="px-6 py-8 lg:px-10">
+        <div className="mb-6">
           <Link
             href="/notes"
             className="text-sm text-text-muted transition-colors hover:text-text-primary"
@@ -33,21 +36,20 @@ export default async function NotePage({ params }: NotePageProps) {
           </Link>
         </div>
 
-        <article className="max-w-4xl">
+        <article className="max-w-5xl">
           <header>
             <div className="flex items-start justify-between gap-6">
               <div>
                 {note.topicPath.length > 0 ? (
                   <p className="text-sm font-medium text-accent">
-                    {" "}
-                    {note.topicPath.join(" / ")}{" "}
+                    {note.topicPath.join(" / ")}
                   </p>
                 ) : (
                   <p className="text-sm font-medium text-text-muted">
-                    {" "}
-                    No topic{" "}
+                    No topic
                   </p>
                 )}
+
                 {note.tags.length > 0 && (
                   <div className="mt-4">
                     <TagList tags={note.tags} />
@@ -59,7 +61,8 @@ export default async function NotePage({ params }: NotePageProps) {
                 </h1>
 
                 <p className="mt-3 text-sm text-text-muted">
-                  Updated {new Date(note.updatedAt).toLocaleDateString()}
+                  Updated{" "}
+                  {new Date(note.updatedAt).toLocaleDateString()}
                 </p>
               </div>
 
@@ -76,9 +79,10 @@ export default async function NotePage({ params }: NotePageProps) {
             </div>
           </header>
 
-          <div className="mt-10 whitespace-pre-wrap text-base leading-8 text-text-secondary">
-            {note.content}
-          </div>
+          <div
+            className="devcore-editor prose prose-invert mt-8 max-w-none"
+            dangerouslySetInnerHTML={{ __html: html }}
+          />
         </article>
       </div>
     </AppShell>

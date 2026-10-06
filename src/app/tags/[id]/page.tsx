@@ -43,7 +43,7 @@ export default async function TagPage({
 
   return (
     <AppShell>
-      <div className="px-6 py-8 lg:px-10 lg:py-10">
+      <div className="px-6 py-8 lg:px-10">
         <div className="mb-6">
           <Link
             href="/tags"

@@ -1,3 +1,4 @@
+import type { JSONContent } from "@tiptap/react";
 import { Tag } from "@/features/tags/types/tag";
 
 export type QuestionStatus = "OPEN" | "RESOLVED";
@@ -18,7 +19,7 @@ export type QuestionRelatedNote = {
 export type Question = {
   id: string;
   question: string;
-  answer: string | null;
+  answer: JSONContent | null;
   status: QuestionStatus;
   resolvedAt: string | null;
   userId: string;

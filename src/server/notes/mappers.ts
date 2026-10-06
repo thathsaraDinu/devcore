@@ -1,11 +1,13 @@
-import { getTopicPath } from "@/features/topics/utils/getTopicPath";
-import type { Topic } from "@/features/topics/types/topic";
+import type { JSONContent } from "@tiptap/react";
+
 import type { Note } from "@/features/notes/types/note";
+import type { Topic } from "@/features/topics/types/topic";
+import { getTopicPath } from "@/features/topics/utils/getTopicPath";
 
 type NoteRecord = {
   id: string;
   title: string;
-  content: string;
+  content: unknown;
   topicId: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -23,20 +25,15 @@ type NoteRecord = {
   }[];
 };
 
-export function mapNote(
-  note: NoteRecord,
-  topics: Topic[],
-): Note {
+export function mapNote(note: NoteRecord, topics: Topic[]): Note {
   return {
     id: note.id,
     title: note.title,
-    content: note.content,
+    content: note.content as JSONContent,
     topicId: note.topicId,
     topic: note.topic,
     topicPath: note.topic
-      ? getTopicPath(topics, note.topic.id).map(
-          (topic) => topic.name,
-        )
+      ? getTopicPath(topics, note.topic.id).map((topic) => topic.name)
       : [],
     tags: note.noteTags.map((noteTag) => noteTag.tag),
     createdAt: note.createdAt.toISOString(),

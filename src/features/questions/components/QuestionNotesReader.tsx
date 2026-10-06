@@ -1,11 +1,8 @@
 "use client";
 
-import {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useEffect, useMemo, useState } from "react";
 
+import { renderRichText } from "@/components/editor/renderRichText";
 import type { Note } from "@/features/notes/types/note";
 
 type RelatedNote = {
@@ -24,21 +21,21 @@ export default function QuestionNotesReader({
   notes,
 }: QuestionNotesReaderProps) {
   const availableNotes = useMemo(() => {
-    const relatedNoteIds = new Set(
-      relatedNotes.map((note) => note.id),
-    );
+    const relatedNoteIds = new Set(relatedNotes.map((note) => note.id));
 
-    return notes.filter((note) =>
-      relatedNoteIds.has(note.id),
-    );
+    return notes.filter((note) => relatedNoteIds.has(note.id));
   }, [notes, relatedNotes]);
 
-  const [selectedNoteId, setSelectedNoteId] =
-    useState("");
+  const [selectedNoteId, setSelectedNoteId] = useState("");
 
   const selectedNote = availableNotes.find(
     (note) => note.id === selectedNoteId,
   );
+
+  const selectedNoteHtml = useMemo(() => {
+    if (!selectedNote) return null;
+    return renderRichText(selectedNote.content);
+  }, [selectedNote]);
 
   /*
    * Keep the selected note synchronized with
@@ -58,9 +55,7 @@ export default function QuestionNotesReader({
 
       const selectedStillExists =
         currentSelectedId !== "" &&
-        availableNotes.some(
-          (note) => note.id === currentSelectedId,
-        );
+        availableNotes.some((note) => note.id === currentSelectedId);
 
       if (selectedStillExists) {
         return currentSelectedId;
@@ -115,17 +110,22 @@ export default function QuestionNotesReader({
 
               <span className="shrink-0 text-xs text-text-muted">
                 {availableNotes.length}{" "}
-                {availableNotes.length === 1
-                  ? "note"
-                  : "notes"}
+                {availableNotes.length === 1 ? "note" : "notes"}
               </span>
             </div>
           </div>
 
           <div className="max-h-[55vh] overflow-y-auto px-6 py-6 subtle-scrollbar bg-gray-950">
-            <div className="whitespace-pre-wrap text-[15px] leading-7 text-text-secondary">
-              {selectedNote.content}
-            </div>
+            {selectedNoteHtml ? (
+              <div
+                className="devcore-editor prose prose-invert text-[15px] leading-7 text-text-secondary"
+                dangerouslySetInnerHTML={{ __html: selectedNoteHtml }}
+              />
+            ) : (
+              <div className="text-[15px] leading-7 text-text-secondary">
+                No content
+              </div>
+            )}
           </div>
 
           <div className="border-t border-border px-6 py-4">
@@ -163,9 +163,7 @@ export default function QuestionNotesReader({
                   <button
                     key={note.id}
                     type="button"
-                    onClick={() =>
-                      setSelectedNoteId(note.id)
-                    }
+                    onClick={() => setSelectedNoteId(note.id)}
                     className="group flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
                   >
                     <div className="min-w-0">

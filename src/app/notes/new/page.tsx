@@ -16,16 +16,12 @@ export default async function NewNotePage() {
         <header>
           <p className="text-sm font-medium text-accent">Notes</p>
 
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight">
+          <h1 className="mt-2 text-xl font-semibold tracking-tight">
             Create Note
           </h1>
-
-          <p className="mt-2 max-w-2xl text-text-secondary">
-            Capture something you learned and connect it to the relevant topic.
-          </p>
         </header>
 
-        <section className="mt-10 max-w-3xl">
+        <section className="mt-8 max-w-5xl">
           <NoteEditor topics={topics} tags={tags} />
         </section>
       </div>

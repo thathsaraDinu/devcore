@@ -61,7 +61,7 @@ model Topic {
 model Note {
   id        String   @id @default(cuid())
   title     String
-  content   String
+  content Json
   userId    String
   topicId   String?
   createdAt DateTime @default(now())
@@ -80,7 +80,7 @@ model Note {
 model Question {
   id         String         @id @default(cuid())
   question   String
-  answer     String?
+  answer     Json?
   status     QuestionStatus @default(OPEN)
   resolvedAt DateTime?
   userId     String

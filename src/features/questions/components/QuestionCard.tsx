@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import type { Question } from "../types/question";
 import { formatRelativeDate } from "@/lib/date/formatRelativeDate";
+import { getAnswerPreview } from "../utils/getAnswerPreview";
 
 type QuestionCardProps = {
   question: Question;
@@ -37,7 +38,7 @@ export default function QuestionCard({ question }: QuestionCardProps) {
 
         {question.answer && (
           <p className="mt-3 line-clamp-2 text-sm leading-6 text-text-secondary">
-            {question.answer}
+            {getAnswerPreview(question.answer)}
           </p>
         )}
 

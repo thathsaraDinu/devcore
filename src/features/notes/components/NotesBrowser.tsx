@@ -8,6 +8,7 @@ import type { Tag } from "@/features/tags/types/tag";
 import TopicPicker from "@/features/topics/components/TopicPicker";
 import type { Topic } from "@/features/topics/types/topic";
 import { getTopicDescendantIds } from "@/features/topics/utils/getTopicDescendantIds";
+import { getNotePreview } from "../utils/getNotePreview";
 
 import type { Note } from "../types/note";
 import NoteList from "./NoteList";
@@ -38,31 +39,27 @@ export default function NotesBrowser({
     : [];
 
   const filteredNotes = initialNotes.filter((note) => {
+    const contentPreview = getNotePreview(note.content);
     const matchesSearch =
       !normalizedQuery ||
       note.title.toLowerCase().includes(normalizedQuery) ||
-      note.content.toLowerCase().includes(normalizedQuery);
+      contentPreview.toLowerCase().includes(normalizedQuery);
 
     const matchesTopic =
       !selectedTopicId ||
       (note.topicId !== null && topicIds.includes(note.topicId));
 
     const matchesTag =
-      !selectedTagId ||
-      note.tags.some((tag) => tag.id === selectedTagId);
+      !selectedTagId || note.tags.some((tag) => tag.id === selectedTagId);
 
     return matchesSearch && matchesTopic && matchesTag;
   });
 
   const hasActiveFilters =
-    normalizedQuery !== "" ||
-    selectedTopicId !== "" ||
-    selectedTagId !== "";
+    normalizedQuery !== "" || selectedTopicId !== "" || selectedTagId !== "";
 
   function handleTagChange(tagId: string) {
-    const params = new URLSearchParams(
-      searchParams.toString(),
-    );
+    const params = new URLSearchParams(searchParams.toString());
 
     if (tagId) {
       params.set("tag", tagId);
@@ -72,10 +69,9 @@ export default function NotesBrowser({
 
     const queryString = params.toString();
 
-    router.replace(
-      queryString ? `/notes?${queryString}` : "/notes",
-      { scroll: false },
-    );
+    router.replace(queryString ? `/notes?${queryString}` : "/notes", {
+      scroll: false,
+    });
   }
 
   function clearFilters() {
@@ -94,9 +90,7 @@ export default function NotesBrowser({
           <input
             type="search"
             value={searchQuery}
-            onChange={(event) =>
-              setSearchQuery(event.target.value)
-            }
+            onChange={(event) => setSearchQuery(event.target.value)}
             placeholder="Search notes..."
             aria-label="Search notes"
             className="min-w-0 flex-1 rounded-md border border-border bg-background px-3 py-2.5 text-sm text-text-primary outline-none transition-colors placeholder:text-text-muted focus:border-accent"

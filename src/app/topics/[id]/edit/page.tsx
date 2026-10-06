@@ -34,7 +34,7 @@ export default async function EditTopicPage({ params }: EditTopicPageProps) {
   return (
     <AppShell>
       <div className="px-6 py-8 lg:px-10 ">
-        <div className="mb-8">
+        <div className="mb-6">
           <Link
             href="/topics"
             className="text-sm text-text-muted transition-colors hover:text-text-primary"
@@ -46,7 +46,7 @@ export default async function EditTopicPage({ params }: EditTopicPageProps) {
         <header>
           <p className="text-sm font-medium text-accent">Topics</p>
 
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight">
+          <h1 className="mt-2 text-xl font-semibold tracking-tight">
             Edit Topic
           </h1>
 

@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import type { Note } from "../types/note";
 import { formatRelativeDate } from "@/lib/date/formatRelativeDate";
+import { getNotePreview } from "../utils/getNotePreview";
 
 type NoteCardProps = {
   note: Note;
@@ -34,7 +35,7 @@ export default function NoteCard({ note }: NoteCardProps) {
         </h2>
 
         <p className="mt-2 line-clamp-3 text-sm leading-6 text-text-secondary">
-          {note.content}
+          {getNotePreview(note.content)}
         </p>
 
         {note.tags.length > 0 && (

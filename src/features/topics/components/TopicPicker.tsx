@@ -8,7 +8,6 @@ import {
 } from "react";
 
 import type { Topic } from "../types/topic";
-import { getTopicPath } from "../utils/getTopicPath";
 
 type TopicPickerProps = {
   topics: Topic[];
@@ -27,19 +26,68 @@ export default function TopicPicker({
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const selectedTopic = topics.find(
-    (topic) => topic.id === value,
-  );
+  const topicById = useMemo(() => {
+    return new Map(topics.map((topic) => [topic.id, topic]));
+  }, [topics]);
 
-  const selectedTopicPath = selectedTopic
-    ? getTopicPath(topics, selectedTopic.id)
-    : [];
+  const topicPathById = useMemo(() => {
+    const paths = new Map<string, Topic[]>();
+
+    function buildPath(topicId: string): Topic[] {
+      const cachedPath = paths.get(topicId);
+
+      if (cachedPath) {
+        return cachedPath;
+      }
+
+      const path: Topic[] = [];
+      const visited = new Set<string>();
+
+      let currentId: string | null = topicId;
+
+      while (currentId) {
+        if (visited.has(currentId)) {
+          break;
+        }
+
+        visited.add(currentId);
+
+        const topic = topicById.get(currentId);
+
+        if (!topic) {
+          break;
+        }
+
+        path.unshift(topic);
+        currentId = topic.parentId;
+      }
+
+      paths.set(topicId, path);
+
+      return path;
+    }
+
+    for (const topic of topics) {
+      buildPath(topic.id);
+    }
+
+    return paths;
+  }, [topics, topicById]);
+
+  const selectedTopicPath = useMemo(() => {
+    if (!value) {
+      return [];
+    }
+
+    return topicPathById.get(value) ?? [];
+  }, [topicPathById, value]);
 
   const childrenByParent = useMemo(() => {
     const map = new Map<string | null, Topic[]>();
 
     for (const topic of topics) {
       const children = map.get(topic.parentId) ?? [];
+
       children.push(topic);
       map.set(topic.parentId, children);
     }
@@ -56,15 +104,13 @@ export default function TopicPicker({
 
     return topics
       .filter((topic) =>
-        topic.name
-          .toLowerCase()
-          .includes(normalizedQuery),
+        topic.name.toLowerCase().includes(normalizedQuery),
       )
       .map((topic) => ({
         topic,
-        path: getTopicPath(topics, topic.id),
+        path: topicPathById.get(topic.id) ?? [],
       }));
-  }, [topics, normalizedQuery]);
+  }, [topics, normalizedQuery, topicPathById]);
 
   function handleSelect(topicId: string) {
     onChange(topicId);
@@ -90,19 +136,14 @@ export default function TopicPicker({
     function handleClickOutside(event: MouseEvent) {
       if (
         containerRef.current &&
-        !containerRef.current.contains(
-          event.target as Node,
-        )
+        !containerRef.current.contains(event.target as Node)
       ) {
         setIsOpen(false);
         setQuery("");
       }
     }
 
-    document.addEventListener(
-      "mousedown",
-      handleClickOutside,
-    );
+    document.addEventListener("mousedown", handleClickOutside);
 
     return () => {
       document.removeEventListener(
@@ -121,10 +162,7 @@ export default function TopicPicker({
       }
     }
 
-    document.addEventListener(
-      "keydown",
-      handleKeyDown,
-    );
+    document.addEventListener("keydown", handleKeyDown);
 
     return () => {
       document.removeEventListener(
@@ -139,7 +177,6 @@ export default function TopicPicker({
       ref={containerRef}
       className="relative"
     >
-      {/* Trigger */}
       <button
         type="button"
         onClick={() => {
@@ -181,7 +218,6 @@ export default function TopicPicker({
 
       {isOpen && (
         <div className="absolute left-0 right-0 top-full z-40 mt-2 overflow-hidden rounded-md border border-border bg-surface shadow-xl">
-          {/* Search */}
           <div className="border-b border-border p-2">
             <input
               ref={inputRef}
@@ -210,9 +246,7 @@ export default function TopicPicker({
                             key={topic.id}
                             type="button"
                             onClick={() =>
-                              handleSelect(
-                                topic.id,
-                              )
+                              handleSelect(topic.id)
                             }
                             className={
                               selected
@@ -232,10 +266,7 @@ export default function TopicPicker({
 
                             <p className="mt-0.5 text-xs text-text-muted">
                               {path
-                                .map(
-                                  (item) =>
-                                    item.name,
-                                )
+                                .map((item) => item.name)
                                 .join(" / ")}
                             </p>
                           </button>
@@ -251,7 +282,6 @@ export default function TopicPicker({
               </>
             ) : (
               <>
-                {/* Clear selection */}
                 <button
                   type="button"
                   onClick={handleClear}
@@ -264,7 +294,6 @@ export default function TopicPicker({
                   No topic
                 </button>
 
-                {/* Hierarchical topic tree */}
                 <div className="mt-1">
                   <TopicTree
                     parentId={null}
@@ -306,8 +335,7 @@ function TopicTree({
           topic.id === selectedTopicId;
 
         const hasChildren =
-          (topicsByParent.get(topic.id) ?? [])
-            .length > 0;
+          (topicsByParent.get(topic.id) ?? []).length > 0;
 
         return (
           <div key={topic.id}>

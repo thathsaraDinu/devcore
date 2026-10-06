@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import type { JSONContent } from "@tiptap/react";
 
+import RichTextEditor from "@/components/editor/RichTextEditor";
 import TagPicker from "@/features/tags/components/TagPicker";
 import type { Tag } from "@/features/tags/types/tag";
 import TopicPicker from "@/features/topics/components/TopicPicker";
@@ -21,22 +23,41 @@ type FormErrors = {
   content?: string;
 };
 
+const emptyDocument: JSONContent = {
+  type: "doc",
+  content: [
+    {
+      type: "paragraph",
+    },
+  ],
+};
+
+function hasRichTextContent(content: JSONContent): boolean {
+  if (!content.content) {
+    return false;
+  }
+
+  return content.content.some((node: JSONContent) => {
+    if (node.type === "text") {
+      return Boolean(node.text?.trim());
+    }
+
+    return hasRichTextContent(node);
+  });
+}
+
 export default function NoteEditor({
   topics,
   tags,
   initialNote,
 }: NoteEditorProps) {
-  const [title, setTitle] = useState(
-    initialNote?.title ?? "",
+  const [title, setTitle] = useState(initialNote?.title ?? "");
+
+  const [content, setContent] = useState<JSONContent>(
+    initialNote?.content ?? emptyDocument,
   );
 
-  const [content, setContent] = useState(
-    initialNote?.content ?? "",
-  );
-
-  const [topicId, setTopicId] = useState(
-    initialNote?.topicId ?? "",
-  );
+  const [topicId, setTopicId] = useState(initialNote?.topicId ?? "");
 
   const [selectedTagIds, setSelectedTagIds] = useState(
     initialNote?.tags.map((tag) => tag.id) ?? [],
@@ -54,16 +75,14 @@ export default function NoteEditor({
       nextErrors.title = "Title is required.";
     }
 
-    if (!content.trim()) {
+    if (!hasRichTextContent(content)) {
       nextErrors.content = "Content is required.";
     }
 
     return nextErrors;
   }
 
-  async function handleSubmit(
-    event: React.FormEvent<HTMLFormElement>,
-  ) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const nextErrors = validateForm();
@@ -77,25 +96,39 @@ export default function NoteEditor({
     setIsSubmitting(true);
 
     const input = {
-      title,
-      content,
+      title: title.trim(),
+      content: JSON.parse(JSON.stringify(content)),
       topicId: topicId || null,
       tagIds: selectedTagIds,
     };
 
-    if (isEditing) {
-      await updateNote(initialNote!.id, input);
-      return;
+    try {
+      if (isEditing) {
+        await updateNote(initialNote!.id, input);
+      } else {
+        await createNote(input);
+      }
+    } catch (error) {
+      // Ignore redirect errors - they're expected for successful mutations
+      if (
+        error &&
+        typeof error === "object" &&
+        "digest" in error &&
+        typeof error.digest === "string" &&
+        error.digest.startsWith("NEXT_REDIRECT")
+      ) {
+        return;
+      }
+      setErrors({
+        content: "Something went wrong while saving the note.",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
-
-    await createNote(input);
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-6"
-    >
+    <form onSubmit={handleSubmit} className="space-y-6">
       <div>
         <label
           htmlFor="title"
@@ -109,23 +142,16 @@ export default function NoteEditor({
           name="title"
           type="text"
           value={title}
-          onChange={(event) =>
-            setTitle(event.target.value)
-          }
+          onChange={(event) => setTitle(event.target.value)}
           placeholder="What did you learn?"
           disabled={isSubmitting}
           aria-invalid={Boolean(errors.title)}
-          aria-describedby={
-            errors.title ? "title-error" : undefined
-          }
+          aria-describedby={errors.title ? "title-error" : undefined}
           className="mt-2 w-full rounded-md border border-border bg-surface px-3 py-2.5 text-sm text-text-primary outline-none transition-colors placeholder:text-text-muted focus:border-accent disabled:opacity-50"
         />
 
         {errors.title && (
-          <p
-            id="title-error"
-            className="mt-2 text-sm text-red-400"
-          >
+          <p id="title-error" className="mt-2 text-sm text-red-400">
             {errors.title}
           </p>
         )}
@@ -139,30 +165,16 @@ export default function NoteEditor({
           Content
         </label>
 
-        <textarea
-          id="content"
-          name="content"
-          value={content}
-          onChange={(event) =>
-            setContent(event.target.value)
-          }
-          placeholder="Write what you learned..."
-          rows={12}
-          disabled={isSubmitting}
-          aria-invalid={Boolean(errors.content)}
-          aria-describedby={
-            errors.content
-              ? "content-error"
-              : undefined
-          }
-          className="mt-2 w-full resize-y rounded-md border border-border bg-surface px-3 py-2.5 text-sm leading-6 text-text-primary outline-none transition-colors placeholder:text-text-muted focus:border-accent disabled:opacity-50"
-        />
+        <div className="mt-2">
+          <RichTextEditor
+            initialContent={initialNote?.content ?? emptyDocument}
+            onChange={setContent}
+            placeholder="Write what you learned..."
+          />
+        </div>
 
         {errors.content && (
-          <p
-            id="content-error"
-            className="mt-2 text-sm text-red-400"
-          >
+          <p id="content-error" className="mt-2 text-sm text-red-400">
             {errors.content}
           </p>
         )}

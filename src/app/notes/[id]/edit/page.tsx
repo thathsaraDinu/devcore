@@ -33,7 +33,7 @@ export default async function EditNotePage({ params }: EditNotePageProps) {
   return (
     <AppShell>
       <div className="px-6 py-8 lg:px-10 ">
-        <div className="mb-8">
+        <div className="mb-6">
           <Link
             href={`/notes/${note.id}`}
             className="text-sm text-text-muted transition-colors hover:text-text-primary"
@@ -45,17 +45,12 @@ export default async function EditNotePage({ params }: EditNotePageProps) {
         <header>
           <p className="text-sm font-medium text-accent">Notes</p>
 
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight">
+          <h1 className="mt-2 text-xl font-semibold tracking-tight">
             Edit Note
           </h1>
-
-          <p className="mt-2 max-w-2xl text-text-secondary">
-            Update your understanding or change the topic associated with this
-            note.
-          </p>
         </header>
 
-        <section className="mt-10 max-w-3xl">
+        <section className="mt-8 max-w-5xl">
           <NoteEditor initialNote={note} topics={topics} tags={tags} />
         </section>
       </div>

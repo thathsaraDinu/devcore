@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import type { JSONContent } from "@tiptap/react";
 
+import RichTextEditor from "@/components/editor/RichTextEditor";
 import TagPicker from "@/features/tags/components/TagPicker";
 import type { Tag } from "@/features/tags/types/tag";
 import TopicPicker from "@/features/topics/components/TopicPicker";
@@ -18,7 +20,35 @@ type QuestionEditorProps = {
 
 type FormErrors = {
   question?: string;
+  answer?: string;
 };
+
+const emptyDocument: JSONContent = {
+  type: "doc",
+  content: [
+    {
+      type: "paragraph",
+    },
+  ],
+};
+
+function getInitialAnswer(answer: JSONContent | null | undefined): JSONContent {
+  return answer || emptyDocument;
+}
+
+function hasRichTextContent(content: JSONContent): boolean {
+  if (!content.content) {
+    return false;
+  }
+
+  return content.content.some((node: JSONContent) => {
+    if (node.type === "text") {
+      return Boolean(node.text?.trim());
+    }
+
+    return hasRichTextContent(node);
+  });
+}
 
 export default function QuestionEditor({
   topics,
@@ -27,7 +57,9 @@ export default function QuestionEditor({
 }: QuestionEditorProps) {
   const [question, setQuestion] = useState(initialQuestion?.question ?? "");
 
-  const [answer, setAnswer] = useState(initialQuestion?.answer ?? "");
+  const [answer, setAnswer] = useState<JSONContent>(
+    getInitialAnswer(initialQuestion?.answer),
+  );
 
   const [topicId, setTopicId] = useState(initialQuestion?.topicId ?? "");
 
@@ -45,6 +77,10 @@ export default function QuestionEditor({
 
     if (!question.trim()) {
       nextErrors.question = "Question is required.";
+    }
+
+    if (answer && !hasRichTextContent(answer)) {
+      nextErrors.answer = "Answer must have content.";
     }
 
     return nextErrors;
@@ -65,17 +101,36 @@ export default function QuestionEditor({
 
     const input = {
       question,
-      answer: answer.trim() || null,
+      answer: hasRichTextContent(answer)
+        ? JSON.parse(JSON.stringify(answer))
+        : null,
       topicId: topicId || null,
       tagIds: selectedTagIds,
     };
 
-    if (isEditing) {
-      await updateQuestion(initialQuestion!.id, input);
-      return;
+    try {
+      if (isEditing) {
+        await updateQuestion(initialQuestion!.id, input);
+      } else {
+        await createQuestion(input);
+      }
+    } catch (error) {
+      // Ignore redirect errors - they're expected for successful mutations
+      if (
+        error &&
+        typeof error === "object" &&
+        "digest" in error &&
+        typeof error.digest === "string" &&
+        error.digest.startsWith("NEXT_REDIRECT")
+      ) {
+        return;
+      }
+      setErrors({
+        answer: "Something went wrong while saving the question.",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
-
-    await createQuestion(input);
   }
 
   return (
@@ -116,16 +171,19 @@ export default function QuestionEditor({
           Answer
         </label>
 
-        <textarea
-          id="answer"
-          name="answer"
-          value={answer}
-          onChange={(event) => setAnswer(event.target.value)}
-          placeholder="Write the answer when you figure it out..."
-          rows={8}
-          disabled={isSubmitting}
-          className="mt-2 w-full resize-y rounded-md border border-border bg-surface px-3 py-2.5 text-sm leading-6 text-text-primary outline-none transition-colors placeholder:text-text-muted focus:border-accent disabled:opacity-50"
-        />
+        <div className="mt-2">
+          <RichTextEditor
+            initialContent={getInitialAnswer(initialQuestion?.answer)}
+            onChange={setAnswer}
+            placeholder="Write the answer when you figure it out..."
+          />
+        </div>
+
+        {errors.answer && (
+          <p id="answer-error" className="mt-2 text-sm text-red-400">
+            {errors.answer}
+          </p>
+        )}
 
         <p className="mt-2 text-sm text-text-muted">
           You can leave this empty and come back to it later.

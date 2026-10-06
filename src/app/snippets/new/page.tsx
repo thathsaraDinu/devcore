@@ -15,7 +15,7 @@ export default async function NewSnippetPage() {
   return (
     <AppShell>
       <div className="px-6 py-8 lg:px-10 ">
-        <div className="mb-8">
+        <div className="mb-6">
           <Link
             href="/snippets"
             className="text-sm text-text-muted transition-colors hover:text-text-primary"
@@ -27,7 +27,7 @@ export default async function NewSnippetPage() {
         <header>
           <p className="text-sm font-medium text-accent">Knowledge</p>
 
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight">
+          <h1 className="mt-2 text-xl font-semibold tracking-tight">
             New Snippet
           </h1>
 
@@ -36,7 +36,7 @@ export default async function NewSnippetPage() {
           </p>
         </header>
 
-        <section className="mt-10 max-w-4xl">
+        <section className="mt-8 max-w-5xl">
           <SnippetEditor topics={topics} tags={tags} />
         </section>
       </div>

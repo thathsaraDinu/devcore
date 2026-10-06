@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import type { JSONContent } from "@tiptap/react";
 
 import { prisma } from "@/server/db/prisma";
 import { requireCurrentUser } from "@/server/users/queries";
@@ -10,15 +11,26 @@ import { requireOwnedTags } from "../tags/access";
 
 type QuestionInput = {
   question: string;
-  answer: string | null;
+  answer: JSONContent | null;
   topicId: string | null;
   tagIds: string[];
 };
 
-async function validateTopic(
-  topicId: string | null,
-  userId: string,
-) {
+function hasRichTextContent(content: JSONContent): boolean {
+  if (!content.content) {
+    return false;
+  }
+
+  return content.content.some((node: JSONContent) => {
+    if (node.type === "text") {
+      return Boolean(node.text?.trim());
+    }
+
+    return hasRichTextContent(node);
+  });
+}
+
+async function validateTopic(topicId: string | null, userId: string) {
   if (!topicId) {
     return;
   }
@@ -26,18 +38,20 @@ async function validateTopic(
   await requireAccessibleTopic(topicId, userId);
 }
 
-export async function createQuestion(
-  input: QuestionInput,
-) {
+export async function createQuestion(input: QuestionInput) {
   const user = await requireCurrentUser();
 
   const question = input.question.trim();
-  const answer = input.answer?.trim() || null;
+  const answer = input.answer ?? null;
   const topicId = input.topicId || null;
   const uniqueTagIds = [...new Set(input.tagIds ?? [])];
 
   if (!question) {
     throw new Error("Question is required.");
+  }
+
+  if (answer && !hasRichTextContent(answer)) {
+    throw new Error("Answer must have content.");
   }
 
   await validateTopic(topicId, user.id);
@@ -47,7 +61,7 @@ export async function createQuestion(
     const createdQuestion = await tx.question.create({
       data: {
         question,
-        answer,
+        answer: answer as any,
         topicId,
         userId: user.id,
       },
@@ -67,19 +81,20 @@ export async function createQuestion(
   redirect("/questions");
 }
 
-export async function updateQuestion(
-  id: string,
-  input: QuestionInput,
-) {
+export async function updateQuestion(id: string, input: QuestionInput) {
   const user = await requireCurrentUser();
 
   const question = input.question.trim();
-  const answer = input.answer?.trim() || null;
+  const answer = input.answer ?? null;
   const topicId = input.topicId || null;
   const uniqueTagIds = [...new Set(input.tagIds ?? [])];
 
   if (!question) {
     throw new Error("Question is required.");
+  }
+
+  if (answer && !hasRichTextContent(answer)) {
+    throw new Error("Answer must have content.");
   }
 
   const existingQuestion = await prisma.question.findFirst({
@@ -106,7 +121,7 @@ export async function updateQuestion(
       },
       data: {
         question,
-        answer,
+        answer: answer as any,
         topicId,
       },
     });
@@ -221,10 +236,7 @@ export async function reopenQuestion(id: string) {
   revalidatePath(`/questions/${id}`);
 }
 
-export async function attachNoteToQuestion(
-  questionId: string,
-  noteId: string,
-) {
+export async function attachNoteToQuestion(questionId: string, noteId: string) {
   const user = await requireCurrentUser();
 
   const [question, note] = await Promise.all([
@@ -320,7 +332,7 @@ export async function detachNoteFromQuestion(
 
 type CreateNoteForQuestionInput = {
   title: string;
-  content: string;
+  content: JSONContent;
   topicId: string | null;
 };
 
@@ -346,15 +358,14 @@ export async function createNoteForQuestion(
   }
 
   const title = input.title.trim();
-  const content = input.content.trim();
-  const topicId =
-    input.topicId || question.topicId || null;
+  const content = input.content;
+  const topicId = input.topicId || question.topicId || null;
 
   if (!title) {
     throw new Error("Title is required.");
   }
 
-  if (!content) {
+  if (!hasRichTextContent(content)) {
     throw new Error("Content is required.");
   }
 
@@ -364,7 +375,7 @@ export async function createNoteForQuestion(
     const note = await tx.note.create({
       data: {
         title,
-        content,
+        content: content as any,
         topicId,
         userId: user.id,
       },
