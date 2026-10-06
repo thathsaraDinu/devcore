@@ -2,19 +2,41 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import type { JSONContent } from "@tiptap/react";
 
 import TopicPicker from "@/features/topics/components/TopicPicker";
 import type { Topic } from "@/features/topics/types/topic";
 import { createNoteForQuestion } from "@/server/questions/mutations";
+import { getNotePreview } from "@/features/notes/utils/getNotePreview";
+import RichTextEditor from "@/components/editor/RichTextEditor";
 
 type QuestionNoteComposerProps = {
   questionId: string;
   question: string;
-  answer: string | null;
+  answer: JSONContent | null;
   topicId: string | null;
   topicPath: string[];
   topics: Topic[];
 };
+
+const emptyDocument: JSONContent = {
+  type: "doc",
+  content: [{ type: "paragraph" }],
+};
+
+function hasRichTextContent(content: JSONContent): boolean {
+  if (!content.content) {
+    return false;
+  }
+
+  return content.content.some((node: JSONContent) => {
+    if (node.type === "text") {
+      return Boolean(node.text?.trim());
+    }
+
+    return hasRichTextContent(node);
+  });
+}
 
 export default function QuestionNoteComposer({
   questionId,
@@ -28,7 +50,7 @@ export default function QuestionNoteComposer({
 
   const [isOpen, setIsOpen] = useState(false);
   const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
+  const [content, setContent] = useState<JSONContent>(emptyDocument);
   const [selectedTopicId, setSelectedTopicId] = useState(topicId ?? "");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -57,7 +79,7 @@ export default function QuestionNoteComposer({
     setError("");
     setSelectedTopicId(topicId ?? "");
     setTitle("");
-    setContent("");
+    setContent(emptyDocument);
     setIsOpen(true);
   }
 
@@ -75,14 +97,13 @@ export default function QuestionNoteComposer({
     setError("");
 
     const trimmedTitle = title.trim();
-    const trimmedContent = content.trim();
 
     if (!trimmedTitle) {
       setError("Title is required.");
       return;
     }
 
-    if (!trimmedContent) {
+    if (!hasRichTextContent(content)) {
       setError("Content is required.");
       return;
     }
@@ -92,7 +113,7 @@ export default function QuestionNoteComposer({
     try {
       await createNoteForQuestion(questionId, {
         title: trimmedTitle,
-        content: trimmedContent,
+        content: JSON.parse(JSON.stringify(content)),
         topicId: selectedTopicId || null,
       });
 
@@ -106,6 +127,8 @@ export default function QuestionNoteComposer({
       setIsSubmitting(false);
     }
   }
+
+  const answerText = answer ? getNotePreview(answer, 500) : "";
 
   return (
     <>
@@ -134,7 +157,6 @@ export default function QuestionNoteComposer({
             aria-labelledby="create-note-title"
           >
             <div className="shrink-0 border-b border-border p-6">
-              {" "}
               <div className="flex items-start justify-between gap-6">
                 <div>
                   <p className="text-sm font-medium text-accent">
@@ -159,19 +181,22 @@ export default function QuestionNoteComposer({
                   ×
                 </button>
               </div>
+
               <div className="mt-5 max-h-56 overflow-y-auto rounded-md border border-border bg-background p-4 subtle-scrollbar">
-                {" "}
                 <p className="text-xs font-medium text-text-muted">
                   Related Question
                 </p>
+
                 {topicPath.length > 0 && (
                   <p className="mt-1 text-xs text-accent">
                     {topicPath.join(" / ")}
                   </p>
                 )}
+
                 <p className="mt-2 text-sm leading-6 text-text-primary">
                   {question}
                 </p>
+
                 {answer && (
                   <div className="mt-4 border-t border-border pt-4">
                     <p className="text-xs font-medium text-text-muted">
@@ -179,7 +204,7 @@ export default function QuestionNoteComposer({
                     </p>
 
                     <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-text-secondary">
-                      {answer}
+                      {answerText}
                     </p>
                   </div>
                 )}
@@ -217,15 +242,13 @@ export default function QuestionNoteComposer({
                   Content
                 </label>
 
-                <textarea
-                  id="question-note-content"
-                  value={content}
-                  onChange={(event) => setContent(event.target.value)}
-                  placeholder="Write what you found..."
-                  rows={8}
-                  disabled={isSubmitting}
-                  className="mt-2 w-full resize-y rounded-md border border-border bg-background px-3 py-2.5 text-sm leading-6 text-text-primary outline-none transition-colors placeholder:text-text-muted focus:border-accent disabled:opacity-50"
-                />
+                <div className="mt-2">
+                  <RichTextEditor
+                    initialContent={emptyDocument}
+                    onChange={setContent}
+                    placeholder="Write what you found..."
+                  />
+                </div>
               </div>
 
               <div>

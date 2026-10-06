@@ -1,26 +1,26 @@
-import { getTopicPath } from "@/features/topics/utils/getTopicPath";
+import type { JSONContent } from "@tiptap/react";
 
-import type { Topic } from "@/features/topics/types/topic";
 import type { Question } from "@/features/questions/types/question";
+import type { Topic } from "@/features/topics/types/topic";
+
+import { getTopicPath } from "@/features/topics/utils/getTopicPath";
 
 type QuestionRecord = {
   id: string;
   question: string;
-  answer: string | null;
+  answer: unknown;
   status: "OPEN" | "RESOLVED";
   resolvedAt: Date | null;
   userId: string;
   topicId: string | null;
   createdAt: Date;
   updatedAt: Date;
-
   topic: {
     id: string;
     name: string;
     slug: string;
     parentId: string | null;
   } | null;
-
   questionNotes: {
     note: {
       id: string;
@@ -33,7 +33,6 @@ type QuestionRecord = {
       } | null;
     };
   }[];
-
   questionTags: {
     tag: {
       id: string;
@@ -49,7 +48,7 @@ export function mapQuestion(
   return {
     id: question.id,
     question: question.question,
-    answer: question.answer,
+    answer: question.answer as JSONContent | null,
     status: question.status,
     resolvedAt: question.resolvedAt?.toISOString() ?? null,
     userId: question.userId,

@@ -1,5 +1,6 @@
 import { prisma } from "@/server/db/prisma";
 
+import { getNotePreview } from "@/features/notes/utils/getNotePreview";
 import { getTopicPath } from "@/features/topics/utils/getTopicPath";
 import type { SearchResult } from "@/features/search/types/search";
 import { getTopics } from "@/server/topics/queries";
@@ -32,20 +33,10 @@ export async function searchAll(
       prisma.note.findMany({
         where: {
           userId: user.id,
-          OR: [
-            {
-              title: {
-                contains: query,
-                mode: "insensitive",
-              },
-            },
-            {
-              content: {
-                contains: query,
-                mode: "insensitive",
-              },
-            },
-          ],
+          title: {
+            contains: query,
+            mode: "insensitive",
+          },
         },
         orderBy: {
           updatedAt: "desc",
@@ -61,20 +52,10 @@ export async function searchAll(
       prisma.question.findMany({
         where: {
           userId: user.id,
-          OR: [
-            {
-              question: {
-                contains: query,
-                mode: "insensitive",
-              },
-            },
-            {
-              answer: {
-                contains: query,
-                mode: "insensitive",
-              },
-            },
-          ],
+          question: {
+            contains: query,
+            mode: "insensitive",
+          },
         },
         orderBy: {
           updatedAt: "desc",
@@ -129,29 +110,27 @@ export async function searchAll(
       }),
     ]);
 
-  const noteResults: SearchResult[] = notes.map(
-    (note) => ({
-      id: note.id,
-      type: "NOTE",
-      title: note.title,
-      preview: note.content,
-      topicPath: note.topic
-        ? getTopicPath(topics, note.topic.id).map(
-            (topic) => topic.name,
-          )
-        : [],
-      updatedAt: note.updatedAt.toISOString(),
-    }),
-  );
+  const noteResults: SearchResult[] = notes.map((note) => ({
+    id: note.id,
+    type: "NOTE",
+    title: note.title,
+    preview: getNotePreview(note.content as any),
+    topicPath: note.topic
+      ? getTopicPath(topics, note.topic.id).map(
+          (topic) => topic.name,
+        )
+      : [],
+    updatedAt: note.updatedAt.toISOString(),
+  }));
 
   const questionResults: SearchResult[] = questions.map(
     (question) => ({
       id: question.id,
       type: "QUESTION",
       title: question.question,
-      preview:
-        question.answer ??
-        "No answer yet.",
+      preview: question.answer
+        ? getNotePreview(question.answer as any)
+        : "No answer yet.",
       topicPath: question.topic
         ? getTopicPath(topics, question.topic.id).map(
             (topic) => topic.name,

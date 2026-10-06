@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import type { JSONContent } from "@tiptap/react";
+
 import {
   attachNoteToQuestion,
   detachNoteFromQuestion,
@@ -8,6 +10,7 @@ import {
 } from "@/server/questions/mutations";
 
 import type { Note } from "@/features/notes/types/note";
+import RichTextEditor from "@/components/editor/RichTextEditor";
 
 type RelatedNote = {
   id: string;
@@ -22,6 +25,25 @@ type QuestionNotesManagerProps = {
   relatedNotes: RelatedNote[];
 };
 
+const emptyDocument: JSONContent = {
+  type: "doc",
+  content: [{ type: "paragraph" }],
+};
+
+function hasRichTextContent(content: JSONContent): boolean {
+  if (!content.content) {
+    return false;
+  }
+
+  return content.content.some((node: JSONContent) => {
+    if (node.type === "text") {
+      return Boolean(node.text?.trim());
+    }
+
+    return hasRichTextContent(node);
+  });
+}
+
 export default function QuestionNotesManager({
   questionId,
   questionTopicId,
@@ -31,8 +53,7 @@ export default function QuestionNotesManager({
   const [isOpen, setIsOpen] = useState(false);
   const [selectedNoteId, setSelectedNoteId] = useState("");
   const [isWorking, setIsWorking] = useState(false);
-  const [showCreateForm, setShowCreateForm] =
-    useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
 
   const relatedIds = new Set(
     relatedNotes.map((note) => note.id),
@@ -216,7 +237,8 @@ function CreateQuestionNoteForm({
   onCreated,
 }: CreateQuestionNoteFormProps) {
   const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
+  const [content, setContent] =
+    useState<JSONContent>(emptyDocument);
   const [isSaving, setIsSaving] = useState(false);
 
   async function handleSubmit(
@@ -224,7 +246,7 @@ function CreateQuestionNoteForm({
   ) {
     event.preventDefault();
 
-    if (!title.trim() || !content.trim()) {
+    if (!title.trim() || !hasRichTextContent(content)) {
       return;
     }
 
@@ -232,8 +254,8 @@ function CreateQuestionNoteForm({
 
     try {
       await createNoteForQuestion(questionId, {
-        title,
-        content,
+        title: title.trim(),
+        content: JSON.parse(JSON.stringify(content)),
         topicId: questionTopicId,
       });
 
@@ -242,6 +264,8 @@ function CreateQuestionNoteForm({
       setIsSaving(false);
     }
   }
+
+  const hasContent = hasRichTextContent(content);
 
   return (
     <form
@@ -258,15 +282,10 @@ function CreateQuestionNoteForm({
         className="w-full rounded-md border border-border bg-surface px-3 py-2.5 text-sm text-text-primary outline-none placeholder:text-text-muted focus:border-accent"
       />
 
-      <textarea
-        value={content}
-        onChange={(event) =>
-          setContent(event.target.value)
-        }
+      <RichTextEditor
+        initialContent={emptyDocument}
+        onChange={setContent}
         placeholder="Write the note..."
-        rows={5}
-        disabled={disabled || isSaving}
-        className="w-full resize-y rounded-md border border-border bg-surface px-3 py-2.5 text-sm leading-6 text-text-primary outline-none placeholder:text-text-muted focus:border-accent"
       />
 
       <div className="flex justify-end">
@@ -276,7 +295,7 @@ function CreateQuestionNoteForm({
             disabled ||
             isSaving ||
             !title.trim() ||
-            !content.trim()
+            !hasContent
           }
           className="rounded-md bg-accent px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
         >

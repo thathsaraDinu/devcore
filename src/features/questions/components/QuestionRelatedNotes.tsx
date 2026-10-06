@@ -15,11 +15,12 @@ import type { Note } from "@/features/notes/types/note";
 import { Topic } from "@/features/topics/types/topic";
 import QuestionNoteComposer from "./QuestionNoteComposer";
 import NotePicker from "./NotePicker";
+import { JSONContent } from "@tiptap/react";
 
 type QuestionRelatedNotesProps = {
   questionId: string;
   question: string;
-  answer: string | null;
+  answer: JSONContent | null;
   questionTopicId: string | null;
   questionTopicPath: string[];
   relatedNotes: QuestionRelatedNote[];
