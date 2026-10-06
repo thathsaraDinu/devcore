@@ -29,14 +29,9 @@ export default async function NewTopicPage() {
           <h1 className="mt-2 text-xl font-semibold tracking-tight">
             Create Topic
           </h1>
-
-          <p className="mt-2 max-w-2xl text-text-secondary">
-            Create a personal topic for something that doesn't fit neatly into
-            the system knowledge structure.
-          </p>
         </header>
 
-        <section className="mt-10 max-w-3xl">
+        <section className="mt-10 max-w-5xl">
           <TopicForm topics={topics} />
         </section>
       </div>
