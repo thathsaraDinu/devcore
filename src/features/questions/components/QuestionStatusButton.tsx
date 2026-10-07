@@ -2,10 +2,7 @@
 
 import { useState } from "react";
 
-import {
-  reopenQuestion,
-  resolveQuestion,
-} from "@/server/questions/mutations";
+import { reopenQuestion, resolveQuestion } from "@/server/questions/mutations";
 
 type QuestionStatusButtonProps = {
   questionId: string;
@@ -39,7 +36,7 @@ export default function QuestionStatusButton({
       type="button"
       onClick={handleClick}
       disabled={isUpdating}
-      className="rounded-md border border-border px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:border-border-hover hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
+      className="min-w-[140px] rounded-md border border-border px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:border-border-hover hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
     >
       {isUpdating
         ? "Updating..."
