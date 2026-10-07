@@ -71,7 +71,7 @@ export default async function QuestionPage({ params }: QuestionPageProps) {
             </header>
 
             <div
-              className="mt-8 devcore-editor prose prose-invert max-w-none"
+              className="mt-5 devcore-editor prose prose-invert max-w-none"
               dangerouslySetInnerHTML={{ __html: questionHtml }}
             />
           </article>
