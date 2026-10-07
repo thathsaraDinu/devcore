@@ -1,5 +1,22 @@
 import { prisma } from "@/server/db/prisma";
 import { requireCurrentUser } from "@/server/users/queries";
+import type { JSONContent } from "@tiptap/react";
+
+function extractTextFromJsonContent(content: JSONContent): string {
+  function extractText(node: JSONContent): string {
+    if (node.type === "text") {
+      return node.text ?? "";
+    }
+
+    if (!node.content) {
+      return "";
+    }
+
+    return node.content.map(extractText).join(" ");
+  }
+
+  return extractText(content).replace(/\s+/g, " ").trim();
+}
 
 export async function getDashboardData() {
   const user = await requireCurrentUser();
@@ -129,7 +146,9 @@ export async function getDashboardData() {
     })),
 
     recentQuestions: recentQuestions.map((question) => ({
-      ...question,
+      id: question.id,
+      question: extractTextFromJsonContent(question.question as JSONContent),
+      status: question.status,
       updatedAt: question.updatedAt.toISOString(),
     })),
 
@@ -139,7 +158,9 @@ export async function getDashboardData() {
     })),
 
     openQuestions: openQuestions.map((question) => ({
-      ...question,
+      id: question.id,
+      question: extractTextFromJsonContent(question.question as JSONContent),
+      topic: question.topic,
       updatedAt: question.updatedAt.toISOString(),
     })),
   };

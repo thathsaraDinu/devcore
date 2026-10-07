@@ -10,7 +10,7 @@ import { requireAccessibleTopic } from "../topics/access";
 import { requireOwnedTags } from "../tags/access";
 
 type QuestionInput = {
-  question: string;
+  question: JSONContent;
   answer: JSONContent | null;
   topicId: string | null;
   tagIds: string[];
@@ -41,12 +41,12 @@ async function validateTopic(topicId: string | null, userId: string) {
 export async function createQuestion(input: QuestionInput) {
   const user = await requireCurrentUser();
 
-  const question = input.question.trim();
+  const question = input.question;
   const answer = input.answer ?? null;
   const topicId = input.topicId || null;
   const uniqueTagIds = [...new Set(input.tagIds ?? [])];
 
-  if (!question) {
+  if (!hasRichTextContent(question)) {
     throw new Error("Question is required.");
   }
 
@@ -60,7 +60,7 @@ export async function createQuestion(input: QuestionInput) {
   await prisma.$transaction(async (tx) => {
     const createdQuestion = await tx.question.create({
       data: {
-        question,
+        question: question as any,
         answer: answer as any,
         topicId,
         userId: user.id,
@@ -84,12 +84,12 @@ export async function createQuestion(input: QuestionInput) {
 export async function updateQuestion(id: string, input: QuestionInput) {
   const user = await requireCurrentUser();
 
-  const question = input.question.trim();
+  const question = input.question;
   const answer = input.answer ?? null;
   const topicId = input.topicId || null;
   const uniqueTagIds = [...new Set(input.tagIds ?? [])];
 
-  if (!question) {
+  if (!hasRichTextContent(question)) {
     throw new Error("Question is required.");
   }
 
@@ -120,7 +120,7 @@ export async function updateQuestion(id: string, input: QuestionInput) {
         id,
       },
       data: {
-        question,
+        question: question as any,
         answer: answer as any,
         topicId,
       },

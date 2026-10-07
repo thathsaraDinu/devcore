@@ -7,11 +7,11 @@ import DeleteQuestionButton from "@/features/questions/components/DeleteQuestion
 import QuestionNotesReader from "@/features/questions/components/QuestionNotesReader";
 import QuestionStatusButton from "@/features/questions/components/QuestionStatusButton";
 import TagList from "@/features/tags/components/TagList";
+import QuestionSidebar from "@/features/questions/components/QuestionSidebar";
 
 import { getNotes } from "@/server/notes/queries";
 import { getQuestionById } from "@/server/questions/queries";
 import { getTopics } from "@/server/topics/queries";
-import QuestionNotesManager from "@/features/questions/components/QuestionNotesManager";
 
 type QuestionPageProps = {
   params: Promise<{
@@ -35,6 +35,7 @@ export default async function QuestionPage({ params }: QuestionPageProps) {
     notFound();
   }
 
+  const questionHtml = renderRichText(question.question);
   const answerHtml = question.answer ? renderRichText(question.answer) : null;
 
   return (
@@ -50,7 +51,7 @@ export default async function QuestionPage({ params }: QuestionPageProps) {
         </div>
 
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(520px,0.9fr)]">
-          {" "}
+          {/* Left column - Question */}
           <article className="min-w-0">
             <header>
               <div>
@@ -60,9 +61,10 @@ export default async function QuestionPage({ params }: QuestionPageProps) {
                   </p>
                 )}
 
-                <h1 className="mt-2 text-3xl font-semibold tracking-tight text-text-primary">
-                  {question.question}
-                </h1>
+                <div
+                  className="mt-2 devcore-editor prose prose-invert max-w-none"
+                  dangerouslySetInnerHTML={{ __html: questionHtml }}
+                />
 
                 <p className="mt-3 text-sm text-text-muted">
                   Updated {new Date(question.updatedAt).toLocaleDateString()}
@@ -91,38 +93,17 @@ export default async function QuestionPage({ params }: QuestionPageProps) {
                 <DeleteQuestionButton questionId={question.id} />
               </div>
             </header>
-
-            <section className="mt-10">
-              <h2 className="text-sm font-medium text-text-primary">Answer</h2>
-
-              {answerHtml ? (
-                <div
-                  className="devcore-editor prose prose-invert mt-4 max-w-none"
-                  dangerouslySetInnerHTML={{ __html: answerHtml }}
-                />
-              ) : (
-                <div className="mt-4 rounded-lg border border-dashed border-border p-6">
-                  <p className="text-sm text-text-muted">
-                    No answer yet. Come back when you've figured it out.
-                  </p>
-                </div>
-              )}
-            </section>
           </article>
-          <aside className="lg:sticky lg:top-6 lg:self-start">
-            <aside className="lg:sticky lg:top-6 lg:self-start">
-              <QuestionNotesReader
-                relatedNotes={question.relatedNotes}
-                notes={notes}
-              />
 
-              <QuestionNotesManager
-                questionId={question.id}
-                questionTopicId={question.topicId}
-                notes={notes}
-                relatedNotes={question.relatedNotes}
-              />
-            </aside>
+          {/* Right column - Tabs */}
+          <aside className="lg:sticky lg:top-6 lg:self-start">
+            <QuestionSidebar
+              answer={question.answer}
+              relatedNotes={question.relatedNotes}
+              notes={notes}
+              questionId={question.id}
+              questionTopicId={question.topicId}
+            />
           </aside>
         </div>
       </div>

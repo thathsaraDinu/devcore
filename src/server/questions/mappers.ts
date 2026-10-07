@@ -7,7 +7,7 @@ import { getTopicPath } from "@/features/topics/utils/getTopicPath";
 
 type QuestionRecord = {
   id: string;
-  question: string;
+  question: unknown;
   answer: unknown;
   status: "OPEN" | "RESOLVED";
   resolvedAt: Date | null;
@@ -47,7 +47,7 @@ export function mapQuestion(
 ): Question {
   return {
     id: question.id,
-    question: question.question,
+    question: question.question as JSONContent,
     answer: question.answer as JSONContent | null,
     status: question.status,
     resolvedAt: question.resolvedAt?.toISOString() ?? null,

@@ -45,7 +45,7 @@ export default function RichTextEditor({
 
   if (!editor) {
     return (
-      <div className="min-h-[600px] animate-pulse rounded-lg border border-border bg-surface" />
+      <div className="min-h-[500px] animate-pulse rounded-lg border border-border bg-surface" />
     );
   }
 
@@ -53,7 +53,7 @@ export default function RichTextEditor({
     <div className="overflow-hidden rounded-lg border border-border bg-surface">
       <RichTextToolbar editor={editor} />
 
-      <div className="min-h-[600px]">
+      <div className="min-h-[500px]">
         <EditorContent editor={editor} />
       </div>
     </div>

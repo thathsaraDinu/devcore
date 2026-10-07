@@ -18,7 +18,7 @@ export type QuestionRelatedNote = {
 
 export type Question = {
   id: string;
-  question: string;
+  question: JSONContent;
   answer: JSONContent | null;
   status: QuestionStatus;
   resolvedAt: string | null;

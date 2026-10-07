@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { Question } from "../types/question";
 import { formatRelativeDate } from "@/lib/date/formatRelativeDate";
 import { getAnswerPreview } from "../utils/getAnswerPreview";
+import { getQuestionPreview } from "../utils/getQuestionPreview";
 
 type QuestionCardProps = {
   question: Question;
@@ -33,7 +34,7 @@ export default function QuestionCard({ question }: QuestionCardProps) {
         </div>
 
         <h2 className="mt-2 line-clamp-3 text-base font-semibold tracking-tight text-text-primary">
-          {question.question}
+          {getQuestionPreview(question.question)}
         </h2>
 
         {question.answer && (

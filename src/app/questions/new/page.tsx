@@ -32,7 +32,7 @@ export default async function NewQuestionPage() {
           </h1>
         </header>
 
-        <section className="mt-8 max-w-5xl">
+        <section className="mt-8 max-w-8xl">
           <QuestionEditor topics={topics} tags={tags} />
         </section>
       </div>

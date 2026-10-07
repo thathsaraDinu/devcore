@@ -79,7 +79,7 @@ model Note {
 
 model Question {
   id         String         @id @default(cuid())
-  question   String
+  question   Json
   answer     Json?
   status     QuestionStatus @default(OPEN)
   resolvedAt DateTime?

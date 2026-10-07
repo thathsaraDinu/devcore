@@ -32,6 +32,12 @@ const emptyDocument: JSONContent = {
   ],
 };
 
+function getInitialQuestion(
+  question: JSONContent | null | undefined,
+): JSONContent {
+  return question || emptyDocument;
+}
+
 function getInitialAnswer(answer: JSONContent | null | undefined): JSONContent {
   return answer || emptyDocument;
 }
@@ -55,7 +61,9 @@ export default function QuestionEditor({
   tags,
   initialQuestion,
 }: QuestionEditorProps) {
-  const [question, setQuestion] = useState(initialQuestion?.question ?? "");
+  const [question, setQuestion] = useState<JSONContent>(
+    getInitialQuestion(initialQuestion?.question),
+  );
 
   const [answer, setAnswer] = useState<JSONContent>(
     getInitialAnswer(initialQuestion?.answer),
@@ -75,7 +83,7 @@ export default function QuestionEditor({
   function validateForm(): FormErrors {
     const nextErrors: FormErrors = {};
 
-    if (!question.trim()) {
+    if (!hasRichTextContent(question)) {
       nextErrors.question = "Question is required.";
     }
 
@@ -100,7 +108,9 @@ export default function QuestionEditor({
     setIsSubmitting(true);
 
     const input = {
-      question,
+      question: hasRichTextContent(question)
+        ? JSON.parse(JSON.stringify(question))
+        : emptyDocument,
       answer: hasRichTextContent(answer)
         ? JSON.parse(JSON.stringify(answer))
         : null,
@@ -135,60 +145,61 @@ export default function QuestionEditor({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {" "}
-      <div>
-        {" "}
-        <label
-          htmlFor="question"
-          className="block text-sm font-medium text-text-primary"
-        >
-          Question{" "}
-        </label>
-        <textarea
-          id="question"
-          name="question"
-          value={question}
-          onChange={(event) => setQuestion(event.target.value)}
-          placeholder="What are you trying to understand?"
-          rows={4}
-          required
-          disabled={isSubmitting}
-          aria-invalid={Boolean(errors.question)}
-          aria-describedby={errors.question ? "question-error" : undefined}
-          className="mt-2 w-full resize-y rounded-md border border-border bg-surface px-3 py-2.5 text-sm leading-6 text-text-primary outline-none transition-colors placeholder:text-text-muted focus:border-accent disabled:opacity-50"
-        />
-        {errors.question && (
-          <p id="question-error" className="mt-2 text-sm text-red-400">
-            {errors.question}
-          </p>
-        )}
-      </div>
-      <div>
-        <label
-          htmlFor="answer"
-          className="block text-sm font-medium text-text-primary"
-        >
-          Answer
-        </label>
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Question */}
+        <div>
+          <label
+            htmlFor="question"
+            className="block text-sm font-medium text-text-primary"
+          >
+            Question
+          </label>
 
-        <div className="mt-2">
-          <RichTextEditor
-            initialContent={getInitialAnswer(initialQuestion?.answer)}
-            onChange={setAnswer}
-            placeholder="Write the answer when you figure it out..."
-          />
+          <div className="mt-2">
+            <RichTextEditor
+              initialContent={getInitialQuestion(initialQuestion?.question)}
+              onChange={setQuestion}
+              placeholder="What are you trying to understand?"
+            />
+          </div>
+
+          {errors.question && (
+            <p id="question-error" className="mt-2 text-sm text-red-400">
+              {errors.question}
+            </p>
+          )}
         </div>
 
-        {errors.answer && (
-          <p id="answer-error" className="mt-2 text-sm text-red-400">
-            {errors.answer}
-          </p>
-        )}
+        {/* Answer */}
+        <div>
+          <label
+            htmlFor="answer"
+            className="block text-sm font-medium text-text-primary"
+          >
+            Answer
+          </label>
 
-        <p className="mt-2 text-sm text-text-muted">
-          You can leave this empty and come back to it later.
-        </p>
+          <div className="mt-2">
+            <RichTextEditor
+              initialContent={getInitialAnswer(initialQuestion?.answer)}
+              onChange={setAnswer}
+              placeholder="Write the answer when you figure it out..."
+            />
+          </div>
+
+          {errors.answer && (
+            <p id="answer-error" className="mt-2 text-sm text-red-400">
+              {errors.answer}
+            </p>
+          )}
+
+          <p className="mt-2 text-sm text-text-muted">
+            You can leave this empty and come back to it later.
+          </p>
+        </div>
       </div>
+
+      {/* Topic + Tags */}
       <div className="grid gap-5 md:grid-cols-2">
         <div>
           <label
@@ -226,6 +237,8 @@ export default function QuestionEditor({
           </p>
         </div>
       </div>
+
+      {/* Submit */}
       <div className="flex justify-end">
         <button
           type="submit"
