@@ -49,7 +49,7 @@ export default async function QuestionPage({ params }: QuestionPageProps) {
         </div>
 
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(520px,0.9fr)]">
-          {/* Left column - Question */}
+          {/* Left column */}
           <article className="min-w-0">
             <header>
               <div className="flex items-start justify-between gap-6">
@@ -69,17 +69,6 @@ export default async function QuestionPage({ params }: QuestionPageProps) {
                       <TagList tags={question.tags} />
                     </div>
                   )}
-
-                  <div className="mt-2">
-                    <div
-                      className="devcore-editor prose prose-invert max-w-none"
-                      dangerouslySetInnerHTML={{ __html: questionHtml }}
-                    />
-                  </div>
-
-                  <p className="mt-3 text-sm text-text-muted">
-                    Updated {new Date(question.updatedAt).toLocaleDateString()}
-                  </p>
                 </div>
 
                 <div className="flex shrink-0 gap-2">
@@ -98,10 +87,20 @@ export default async function QuestionPage({ params }: QuestionPageProps) {
                   <DeleteQuestionButton questionId={question.id} />
                 </div>
               </div>
+
+              <p className="mt-3 text-sm text-text-muted">
+                Updated {new Date(question.updatedAt).toLocaleDateString()}
+              </p>
             </header>
+
+            {/* Full width of the left column */}
+            <div
+              className="mt-8 devcore-editor prose prose-invert max-w-none"
+              dangerouslySetInnerHTML={{ __html: questionHtml }}
+            />
           </article>
 
-          {/* Right column - Tabs */}
+          {/* Right column */}
           <aside className="lg:sticky lg:top-6 lg:self-start">
             <QuestionSidebar
               answer={question.answer}
