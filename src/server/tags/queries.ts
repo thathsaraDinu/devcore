@@ -2,6 +2,35 @@ import { prisma } from "@/server/db/prisma";
 import { requireCurrentUser } from "@/server/users/queries";
 
 import type { Tag } from "@/features/tags/types/tag";
+import type { JSONContent } from "@tiptap/react";
+
+type TagWithContent = {
+  id: string;
+  name: string;
+  noteTags: {
+    note: {
+      id: string;
+      title: string;
+      updatedAt: Date;
+    };
+  }[];
+  questionTags: {
+    question: {
+      id: string;
+      question: JSONContent;
+      status: "OPEN" | "RESOLVED";
+      updatedAt: Date;
+    };
+  }[];
+  snippetTags: {
+    snippet: {
+      id: string;
+      title: string;
+      language: string;
+      updatedAt: Date;
+    };
+  }[];
+};
 
 export async function getTags(): Promise<Tag[]> {
   const user = await requireCurrentUser();
@@ -20,10 +49,10 @@ export async function getTags(): Promise<Tag[]> {
   });
 }
 
-export async function getTagById(id: string) {
+export async function getTagById(id: string): Promise<TagWithContent | null> {
   const user = await requireCurrentUser();
 
-  return prisma.tag.findFirst({
+  const tag = await prisma.tag.findFirst({
     where: {
       id,
       userId: user.id,
@@ -86,4 +115,19 @@ export async function getTagById(id: string) {
       },
     },
   });
+
+  if (!tag) {
+    return null;
+  }
+
+  return {
+    ...tag,
+    questionTags: tag.questionTags.map((qt) => ({
+      ...qt,
+      question: {
+        ...qt.question,
+        question: qt.question as JSONContent,
+      },
+    })),
+  };
 }

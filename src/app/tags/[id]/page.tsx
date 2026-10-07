@@ -8,6 +8,7 @@ import DeleteTagButton from "@/features/tags/components/DeleteTagButton";
 import TagNameEditor from "@/features/tags/components/TagNameEditor";
 import { formatRelativeDate } from "@/lib/date/formatRelativeDate";
 import { getTagById } from "@/server/tags/queries";
+import { getQuestionPreview } from "@/features/questions/utils/getQuestionPreview";
 
 type TagPageProps = {
   params: Promise<{
@@ -19,9 +20,7 @@ export const metadata = {
   title: "Tag",
 };
 
-export default async function TagPage({
-  params,
-}: TagPageProps) {
+export default async function TagPage({ params }: TagPageProps) {
   const { id } = await params;
 
   const tag = await getTagById(id);
@@ -31,15 +30,10 @@ export default async function TagPage({
   }
 
   const notes = tag.noteTags.map(({ note }) => note);
-  const questions = tag.questionTags.map(
-    ({ question }) => question,
-  );
-  const snippets = tag.snippetTags.map(
-    ({ snippet }) => snippet,
-  );
+  const questions = tag.questionTags.map(({ question }) => question);
+  const snippets = tag.snippetTags.map(({ snippet }) => snippet);
 
-  const totalItems =
-    notes.length + questions.length + snippets.length;
+  const totalItems = notes.length + questions.length + snippets.length;
 
   return (
     <AppShell>
@@ -55,12 +49,7 @@ export default async function TagPage({
 
         <PageHeader
           eyebrow="Tag"
-          title={
-            <TagNameEditor
-              tagId={tag.id}
-              initialName={tag.name}
-            />
-          }
+          title={<TagNameEditor tagId={tag.id} initialName={tag.name} />}
           description={
             totalItems === 0
               ? "This tag is not attached to any knowledge yet."
@@ -80,25 +69,19 @@ export default async function TagPage({
 
         <div className="mt-6 grid gap-3 sm:grid-cols-3">
           <div className="rounded-lg border border-border bg-surface px-5 py-4">
-            <p className="text-xs font-medium text-cyan">
-              Notes
-            </p>
+            <p className="text-xs font-medium text-cyan">Notes</p>
 
             <p className="mt-2 text-2xl font-semibold tracking-tight text-text-primary">
               {notes.length}
             </p>
 
             <p className="mt-1 text-xs text-text-muted">
-              {notes.length === 1
-                ? "note uses this tag"
-                : "notes use this tag"}
+              {notes.length === 1 ? "note uses this tag" : "notes use this tag"}
             </p>
           </div>
 
           <div className="rounded-lg border border-border bg-surface px-5 py-4">
-            <p className="text-xs font-medium text-rose">
-              Questions
-            </p>
+            <p className="text-xs font-medium text-rose">Questions</p>
 
             <p className="mt-2 text-2xl font-semibold tracking-tight text-text-primary">
               {questions.length}
@@ -112,9 +95,7 @@ export default async function TagPage({
           </div>
 
           <div className="rounded-lg border border-border bg-surface px-5 py-4">
-            <p className="text-xs font-medium text-accent">
-              Snippets
-            </p>
+            <p className="text-xs font-medium text-accent">Snippets</p>
 
             <p className="mt-2 text-2xl font-semibold tracking-tight text-text-primary">
               {snippets.length}
@@ -170,8 +151,7 @@ export default async function TagPage({
                     </div>
 
                     <p className="mt-2 text-xs text-text-muted">
-                      Updated{" "}
-                      {formatRelativeDate(note.updatedAt)}
+                      Updated {formatRelativeDate(note.updatedAt)}
                     </p>
                   </Link>
                 ))}
@@ -207,8 +187,7 @@ export default async function TagPage({
             {questions.length > 0 ? (
               <div className="divide-y divide-border">
                 {questions.map((question) => {
-                  const isResolved =
-                    question.status === "RESOLVED";
+                  const isResolved = question.status === "RESOLVED";
 
                   return (
                     <Link
@@ -218,7 +197,7 @@ export default async function TagPage({
                     >
                       <div className="flex items-start justify-between gap-4">
                         <p className="line-clamp-2 text-sm font-medium text-text-primary transition-colors group-hover:text-rose">
-                          {question.question}
+                          {getQuestionPreview(question.question)}
                         </p>
 
                         <span
@@ -237,16 +216,11 @@ export default async function TagPage({
                               : "text-xs font-medium text-warning"
                           }
                         >
-                          {isResolved
-                            ? "Resolved"
-                            : "Open"}
+                          {isResolved ? "Resolved" : "Open"}
                         </span>
 
                         <span className="text-xs text-text-muted">
-                          Updated{" "}
-                          {formatRelativeDate(
-                            question.updatedAt,
-                          )}
+                          Updated {formatRelativeDate(question.updatedAt)}
                         </span>
                       </div>
                     </Link>
@@ -300,10 +274,7 @@ export default async function TagPage({
                     </div>
 
                     <p className="mt-2 text-xs text-text-muted">
-                      Updated{" "}
-                      {formatRelativeDate(
-                        snippet.updatedAt,
-                      )}
+                      Updated {formatRelativeDate(snippet.updatedAt)}
                     </p>
                   </Link>
                 ))}
@@ -326,9 +297,9 @@ export default async function TagPage({
               </h2>
 
               <p className="mt-1 max-w-2xl text-sm text-text-muted">
-                Delete this tag and remove it from all
-                associated Notes, Questions, and Snippets.
-                The knowledge itself will not be deleted.
+                Delete this tag and remove it from all associated Notes,
+                Questions, and Snippets. The knowledge itself will not be
+                deleted.
               </p>
             </div>
 

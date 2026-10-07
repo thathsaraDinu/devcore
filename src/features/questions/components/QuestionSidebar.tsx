@@ -6,14 +6,7 @@ import Tabs from "@/components/ui/Tabs";
 import { renderRichText } from "@/components/editor/renderRichText";
 import QuestionNotesReader from "./QuestionNotesReader";
 import QuestionNotesManager from "./QuestionNotesManager";
-
-type Note = {
-  id: string;
-  title: string;
-  content: JSONContent;
-  topicId: string | null;
-  topicPath: string[];
-};
+import type { Note } from "@/features/notes/types/note";
 
 type RelatedNote = {
   id: string;
@@ -67,10 +60,7 @@ export default function QuestionSidebar({
 
           {activeTab === "notes" && (
             <div className="space-y-4">
-              <QuestionNotesReader
-                relatedNotes={relatedNotes}
-                notes={notes}
-              />
+              <QuestionNotesReader relatedNotes={relatedNotes} notes={notes} />
 
               <QuestionNotesManager
                 questionId={questionId}
