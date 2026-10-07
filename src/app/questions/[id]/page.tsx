@@ -48,11 +48,11 @@ export default async function QuestionPage({ params }: QuestionPageProps) {
           </Link>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(520px,0.9fr)]">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.9fr)]">
           {/* Left column */}
           <article className="min-w-0">
             <header>
-              <div className="flex items-start justify-between gap-6">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
                   {question.topicPath.length > 0 ? (
                     <p className="text-sm font-medium text-accent">
@@ -71,7 +71,7 @@ export default async function QuestionPage({ params }: QuestionPageProps) {
                   )}
                 </div>
 
-                <div className="flex shrink-0 gap-2">
+                <div className="flex shrink-0 flex-wrap gap-2">
                   <QuestionStatusButton
                     questionId={question.id}
                     status={question.status}
@@ -93,14 +93,14 @@ export default async function QuestionPage({ params }: QuestionPageProps) {
               </p>
             </header>
 
-            {/* Full width of the left column */}
+            {/* Question — full width of left column */}
             <div
               className="mt-8 devcore-editor prose prose-invert max-w-none"
               dangerouslySetInnerHTML={{ __html: questionHtml }}
             />
           </article>
 
-          {/* Right column */}
+          {/* Right column / stacked below on smaller screens */}
           <aside className="lg:sticky lg:top-6 lg:self-start">
             <QuestionSidebar
               answer={question.answer}
