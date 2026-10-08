@@ -126,7 +126,11 @@ export default function QuestionEditor({
         : await createQuestion(input);
 
       if (result?.redirectUrl) {
-        router.replace(result.redirectUrl);
+        if (isEditing) {
+          router.back();
+        } else {
+          router.replace(result.redirectUrl);
+        }
       }
     } catch (error) {
       setErrors({
