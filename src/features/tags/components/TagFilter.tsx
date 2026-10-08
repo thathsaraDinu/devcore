@@ -69,9 +69,7 @@ export default function TagFilter({ tags, value, onChange }: TagFilterProps) {
         <span className="truncate">
           {selectedTags.length === 0
             ? "All tags"
-            : selectedTags.length <= 2
-              ? selectedTags.map((tag) => `#${tag.name}`).join(", ")
-              : `${selectedTags.length} tags selected`}
+            : `${selectedTags.length} tag${selectedTags.length === 1 ? "" : "s"} selected`}
         </span>
 
         <span className="shrink-0 text-text-muted">{isOpen ? "↑" : "↓"}</span>
