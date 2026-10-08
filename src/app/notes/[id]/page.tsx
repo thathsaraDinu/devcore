@@ -80,7 +80,7 @@ export default async function NotePage({ params }: NotePageProps) {
           </header>
 
           <div
-            className="devcore-editor prose prose-invert mt-8 max-w-none"
+            className="devcore-editor prose prose-invert mt-4 max-w-none"
             dangerouslySetInnerHTML={{ __html: html }}
           />
         </article>

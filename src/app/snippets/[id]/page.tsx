@@ -89,14 +89,14 @@ export default async function SnippetPage({ params }: SnippetPageProps) {
           </header>
 
           {snippet.description && (
-            <section className="mt-8">
+            <section className="mt-6">
               <p className="whitespace-pre-wrap text-base leading-8 text-text-secondary">
                 {snippet.description}
               </p>
             </section>
           )}
 
-          <section className="mt-8">
+          <section className="mt-4">
             <pre className="overflow-x-auto rounded-lg border border-border bg-background p-5 subtle-scrollbar">
               <code className="font-mono text-sm leading-6 text-text-primary">
                 {snippet.code}
