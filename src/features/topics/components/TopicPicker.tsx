@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import type { Topic } from "../types/topic";
 
@@ -13,12 +8,14 @@ type TopicPickerProps = {
   topics: Topic[];
   value: string;
   onChange: (topicId: string) => void;
+  disabled?: boolean;
 };
 
 export default function TopicPicker({
   topics,
   value,
   onChange,
+  disabled = false,
 }: TopicPickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -103,9 +100,7 @@ export default function TopicPicker({
     }
 
     return topics
-      .filter((topic) =>
-        topic.name.toLowerCase().includes(normalizedQuery),
-      )
+      .filter((topic) => topic.name.toLowerCase().includes(normalizedQuery))
       .map((topic) => ({
         topic,
         path: topicPathById.get(topic.id) ?? [],
@@ -146,10 +141,7 @@ export default function TopicPicker({
     document.addEventListener("mousedown", handleClickOutside);
 
     return () => {
-      document.removeEventListener(
-        "mousedown",
-        handleClickOutside,
-      );
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -165,18 +157,12 @@ export default function TopicPicker({
     document.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      document.removeEventListener(
-        "keydown",
-        handleKeyDown,
-      );
+      document.removeEventListener("keydown", handleKeyDown);
     };
   }, []);
 
   return (
-    <div
-      ref={containerRef}
-      className="relative"
-    >
+    <div ref={containerRef} className="relative">
       <button
         type="button"
         onClick={() => {
@@ -187,14 +173,13 @@ export default function TopicPicker({
             handleOpen();
           }
         }}
+        disabled={disabled}
         aria-expanded={isOpen}
-        className="flex w-full items-center justify-between gap-3 rounded-md border border-border bg-surface px-3 py-2.5 text-left text-sm text-text-primary transition-colors hover:border-border-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        className="flex w-full items-center justify-between gap-3 rounded-md border border-border bg-surface px-3 py-2.5 text-left text-sm text-text-primary transition-colors hover:border-border-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent disabled:cursor-not-allowed disabled:opacity-50"
       >
         <span className="min-w-0 truncate">
           {selectedTopicPath.length > 0
-            ? selectedTopicPath
-                .map((topic) => topic.name)
-                .join(" / ")
+            ? selectedTopicPath.map((topic) => topic.name).join(" / ")
             : "Select topic"}
         </span>
 
@@ -223,9 +208,7 @@ export default function TopicPicker({
               ref={inputRef}
               type="search"
               value={query}
-              onChange={(event) =>
-                setQuery(event.target.value)
-              }
+              onChange={(event) => setQuery(event.target.value)}
               placeholder="Search topics..."
               className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-text-primary outline-none placeholder:text-text-muted focus:border-accent"
             />
@@ -236,43 +219,36 @@ export default function TopicPicker({
               <>
                 {searchResults.length > 0 ? (
                   <div className="space-y-0.5">
-                    {searchResults.map(
-                      ({ topic, path }) => {
-                        const selected =
-                          topic.id === value;
+                    {searchResults.map(({ topic, path }) => {
+                      const selected = topic.id === value;
 
-                        return (
-                          <button
-                            key={topic.id}
-                            type="button"
-                            onClick={() =>
-                              handleSelect(topic.id)
-                            }
+                      return (
+                        <button
+                          key={topic.id}
+                          type="button"
+                          onClick={() => handleSelect(topic.id)}
+                          className={
+                            selected
+                              ? "w-full rounded-md bg-surface-hover px-3 py-2.5 text-left"
+                              : "w-full rounded-md px-3 py-2.5 text-left transition-colors hover:bg-surface-hover"
+                          }
+                        >
+                          <p
                             className={
                               selected
-                                ? "w-full rounded-md bg-surface-hover px-3 py-2.5 text-left"
-                                : "w-full rounded-md px-3 py-2.5 text-left transition-colors hover:bg-surface-hover"
+                                ? "text-sm font-medium text-text-primary"
+                                : "text-sm font-medium text-text-secondary"
                             }
                           >
-                            <p
-                              className={
-                                selected
-                                  ? "text-sm font-medium text-text-primary"
-                                  : "text-sm font-medium text-text-secondary"
-                              }
-                            >
-                              {topic.name}
-                            </p>
+                            {topic.name}
+                          </p>
 
-                            <p className="mt-0.5 text-xs text-text-muted">
-                              {path
-                                .map((item) => item.name)
-                                .join(" / ")}
-                            </p>
-                          </button>
-                        );
-                      },
-                    )}
+                          <p className="mt-0.5 text-xs text-text-muted">
+                            {path.map((item) => item.name).join(" / ")}
+                          </p>
+                        </button>
+                      );
+                    })}
                   </div>
                 ) : (
                   <p className="px-3 py-4 text-sm text-text-muted">
@@ -331,11 +307,9 @@ function TopicTree({
   return (
     <div>
       {children.map((topic) => {
-        const selected =
-          topic.id === selectedTopicId;
+        const selected = topic.id === selectedTopicId;
 
-        const hasChildren =
-          (topicsByParent.get(topic.id) ?? []).length > 0;
+        const hasChildren = (topicsByParent.get(topic.id) ?? []).length > 0;
 
         return (
           <div key={topic.id}>
@@ -352,18 +326,12 @@ function TopicTree({
               }}
             >
               <span
-                className={
-                  hasChildren
-                    ? "text-text-muted"
-                    : "w-3 shrink-0"
-                }
+                className={hasChildren ? "text-text-muted" : "w-3 shrink-0"}
               >
                 {hasChildren ? "•" : ""}
               </span>
 
-              <span className="truncate">
-                {topic.name}
-              </span>
+              <span className="truncate">{topic.name}</span>
             </button>
 
             {hasChildren && (

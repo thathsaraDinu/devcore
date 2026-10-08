@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
 import { prisma } from "@/server/db/prisma";
 import { requireCurrentUser } from "@/server/users/queries";
@@ -18,15 +17,11 @@ export async function createTopic(formData: FormData) {
   const user = await requireCurrentUser();
 
   const name = String(formData.get("name") ?? "").trim();
-  const description = String(
-    formData.get("description") ?? "",
-  ).trim();
+  const description = String(formData.get("description") ?? "").trim();
 
   const rawParentId = formData.get("parentId");
   const parentId =
-    typeof rawParentId === "string" && rawParentId
-      ? rawParentId
-      : null;
+    typeof rawParentId === "string" && rawParentId ? rawParentId : null;
 
   if (!name) {
     throw new Error("Topic name is required.");
@@ -36,10 +31,7 @@ export async function createTopic(formData: FormData) {
     const parent = await prisma.topic.findFirst({
       where: {
         id: parentId,
-        OR: [
-          { createdByUserId: null },
-          { createdByUserId: user.id },
-        ],
+        OR: [{ createdByUserId: null }, { createdByUserId: user.id }],
       },
       select: {
         id: true,
@@ -68,7 +60,7 @@ export async function createTopic(formData: FormData) {
   });
 
   revalidatePath("/topics");
-  redirect("/topics");
+  return { redirectUrl: "/topics" };
 }
 
 export async function updateTopic(formData: FormData) {
@@ -76,15 +68,11 @@ export async function updateTopic(formData: FormData) {
 
   const id = String(formData.get("id") ?? "").trim();
   const name = String(formData.get("name") ?? "").trim();
-  const description = String(
-    formData.get("description") ?? "",
-  ).trim();
+  const description = String(formData.get("description") ?? "").trim();
 
   const rawParentId = formData.get("parentId");
   const parentId =
-    typeof rawParentId === "string" && rawParentId
-      ? rawParentId
-      : null;
+    typeof rawParentId === "string" && rawParentId ? rawParentId : null;
 
   if (!id) {
     throw new Error("Topic ID is required.");
@@ -116,10 +104,7 @@ export async function updateTopic(formData: FormData) {
     const parent = await prisma.topic.findFirst({
       where: {
         id: parentId,
-        OR: [
-          { createdByUserId: null },
-          { createdByUserId: user.id },
-        ],
+        OR: [{ createdByUserId: null }, { createdByUserId: user.id }],
       },
       select: {
         id: true,
@@ -132,10 +117,7 @@ export async function updateTopic(formData: FormData) {
 
     const topics = await prisma.topic.findMany({
       where: {
-        OR: [
-          { createdByUserId: null },
-          { createdByUserId: user.id },
-        ],
+        OR: [{ createdByUserId: null }, { createdByUserId: user.id }],
       },
       select: {
         id: true,
@@ -143,9 +125,7 @@ export async function updateTopic(formData: FormData) {
       },
     });
 
-    const topicMap = new Map(
-      topics.map((topic) => [topic.id, topic]),
-    );
+    const topicMap = new Map(topics.map((topic) => [topic.id, topic]));
 
     let currentId: string | null = parentId;
 
@@ -163,9 +143,7 @@ export async function updateTopic(formData: FormData) {
   const slug = createSlug(name);
 
   if (!slug) {
-    throw new Error(
-      "Topic name must contain letters or numbers.",
-    );
+    throw new Error("Topic name must contain letters or numbers.");
   }
 
   await prisma.topic.update({
@@ -183,7 +161,7 @@ export async function updateTopic(formData: FormData) {
   revalidatePath("/topics");
   revalidatePath("/notes");
 
-  redirect("/topics");
+  return { redirectUrl: "/topics" };
 }
 
 export async function deleteTopic(id: string) {
@@ -209,9 +187,7 @@ export async function deleteTopic(id: string) {
   }
 
   if (topic.children.length > 0) {
-    throw new Error(
-      "Cannot delete a topic that has child topics.",
-    );
+    throw new Error("Cannot delete a topic that has child topics.");
   }
 
   await prisma.topic.delete({
@@ -222,5 +198,5 @@ export async function deleteTopic(id: string) {
 
   revalidatePath("/topics");
   revalidatePath("/notes");
-  redirect("/topics");
+  return { redirectUrl: "/topics" };
 }

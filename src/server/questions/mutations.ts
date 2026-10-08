@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import type { JSONContent } from "@tiptap/react";
 
 import { prisma } from "@/server/db/prisma";
@@ -78,7 +77,7 @@ export async function createQuestion(input: QuestionInput) {
   });
 
   revalidatePath("/questions");
-  redirect("/questions");
+  return { redirectUrl: "/questions" };
 }
 
 export async function updateQuestion(id: string, input: QuestionInput) {
@@ -144,7 +143,7 @@ export async function updateQuestion(id: string, input: QuestionInput) {
 
   revalidatePath("/questions");
   revalidatePath(`/questions/${id}`);
-  redirect(`/questions/${id}`);
+  return { redirectUrl: `/questions/${id}` };
 }
 
 export async function deleteQuestion(id: string) {
@@ -171,7 +170,7 @@ export async function deleteQuestion(id: string) {
   });
 
   revalidatePath("/questions");
-  redirect("/questions");
+  return { redirectUrl: "/questions" };
 }
 
 export async function resolveQuestion(id: string) {

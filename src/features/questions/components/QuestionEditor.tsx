@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import type { JSONContent } from "@tiptap/react";
 
 import RichTextEditor from "@/components/editor/RichTextEditor";
@@ -61,6 +62,7 @@ export default function QuestionEditor({
   tags,
   initialQuestion,
 }: QuestionEditorProps) {
+  const router = useRouter();
   const [question, setQuestion] = useState<JSONContent>(
     getInitialQuestion(initialQuestion?.question),
   );
@@ -119,22 +121,14 @@ export default function QuestionEditor({
     };
 
     try {
-      if (isEditing) {
-        await updateQuestion(initialQuestion!.id, input);
-      } else {
-        await createQuestion(input);
+      const result = isEditing
+        ? await updateQuestion(initialQuestion!.id, input)
+        : await createQuestion(input);
+
+      if (result?.redirectUrl) {
+        router.replace(result.redirectUrl);
       }
     } catch (error) {
-      // Ignore redirect errors - they're expected for successful mutations
-      if (
-        error &&
-        typeof error === "object" &&
-        "digest" in error &&
-        typeof error.digest === "string" &&
-        error.digest.startsWith("NEXT_REDIRECT")
-      ) {
-        return;
-      }
       setErrors({
         answer: "Something went wrong while saving the question.",
       });

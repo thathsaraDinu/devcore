@@ -1,15 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import TagPicker from "@/features/tags/components/TagPicker";
 import type { Tag } from "@/features/tags/types/tag";
 import TopicPicker from "@/features/topics/components/TopicPicker";
 import type { Topic } from "@/features/topics/types/topic";
-import {
-  createSnippet,
-  updateSnippet,
-} from "@/server/snippets/mutations";
+import { createSnippet, updateSnippet } from "@/server/snippets/mutations";
 
 import type { Snippet } from "../types/snippet";
 
@@ -30,25 +28,18 @@ export default function SnippetEditor({
   tags,
   initialSnippet,
 }: SnippetEditorProps) {
-  const [title, setTitle] = useState(
-    initialSnippet?.title ?? "",
-  );
+  const router = useRouter();
+  const [title, setTitle] = useState(initialSnippet?.title ?? "");
 
-  const [language, setLanguage] = useState(
-    initialSnippet?.language ?? "",
-  );
+  const [language, setLanguage] = useState(initialSnippet?.language ?? "");
 
-  const [code, setCode] = useState(
-    initialSnippet?.code ?? "",
-  );
+  const [code, setCode] = useState(initialSnippet?.code ?? "");
 
   const [description, setDescription] = useState(
     initialSnippet?.description ?? "",
   );
 
-  const [topicId, setTopicId] = useState(
-    initialSnippet?.topicId ?? "",
-  );
+  const [topicId, setTopicId] = useState(initialSnippet?.topicId ?? "");
 
   const [selectedTagIds, setSelectedTagIds] = useState(
     initialSnippet?.tags.map((tag) => tag.id) ?? [],
@@ -77,9 +68,7 @@ export default function SnippetEditor({
     return nextErrors;
   }
 
-  async function handleSubmit(
-    event: React.FormEvent<HTMLFormElement>,
-  ) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const nextErrors = validateForm();
@@ -101,19 +90,23 @@ export default function SnippetEditor({
       tagIds: selectedTagIds,
     };
 
-    if (isEditing) {
-      await updateSnippet(initialSnippet!.id, input);
-      return;
-    }
+    try {
+      const result = isEditing
+        ? await updateSnippet(initialSnippet!.id, input)
+        : await createSnippet(input);
 
-    await createSnippet(input);
+      if (result?.redirectUrl) {
+        router.replace(result.redirectUrl);
+      }
+    } catch (error) {
+      // Handle error
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-6"
-    >
+    <form onSubmit={handleSubmit} className="space-y-6">
       <div>
         <label
           htmlFor="snippet-title"
@@ -126,9 +119,7 @@ export default function SnippetEditor({
           id="snippet-title"
           type="text"
           value={title}
-          onChange={(event) =>
-            setTitle(event.target.value)
-          }
+          onChange={(event) => setTitle(event.target.value)}
           placeholder="e.g. Debounce Hook"
           disabled={isSubmitting}
           aria-invalid={Boolean(errors.title)}
@@ -136,9 +127,7 @@ export default function SnippetEditor({
         />
 
         {errors.title && (
-          <p className="mt-2 text-sm text-red-400">
-            {errors.title}
-          </p>
+          <p className="mt-2 text-sm text-red-400">{errors.title}</p>
         )}
       </div>
 
@@ -155,9 +144,7 @@ export default function SnippetEditor({
             id="snippet-language"
             type="text"
             value={language}
-            onChange={(event) =>
-              setLanguage(event.target.value)
-            }
+            onChange={(event) => setLanguage(event.target.value)}
             placeholder="e.g. TypeScript"
             disabled={isSubmitting}
             aria-invalid={Boolean(errors.language)}
@@ -165,9 +152,7 @@ export default function SnippetEditor({
           />
 
           {errors.language && (
-            <p className="mt-2 text-sm text-red-400">
-              {errors.language}
-            </p>
+            <p className="mt-2 text-sm text-red-400">{errors.language}</p>
           )}
         </div>
 
@@ -217,17 +202,13 @@ export default function SnippetEditor({
             Code
           </label>
 
-          <span className="text-xs text-text-muted">
-            {language || "Code"}
-          </span>
+          <span className="text-xs text-text-muted">{language || "Code"}</span>
         </div>
 
         <textarea
           id="snippet-code"
           value={code}
-          onChange={(event) =>
-            setCode(event.target.value)
-          }
+          onChange={(event) => setCode(event.target.value)}
           placeholder="Paste or write your code here..."
           rows={18}
           spellCheck={false}
@@ -237,9 +218,7 @@ export default function SnippetEditor({
         />
 
         {errors.code && (
-          <p className="mt-2 text-sm text-red-400">
-            {errors.code}
-          </p>
+          <p className="mt-2 text-sm text-red-400">{errors.code}</p>
         )}
       </div>
 
@@ -254,9 +233,7 @@ export default function SnippetEditor({
         <textarea
           id="snippet-description"
           value={description}
-          onChange={(event) =>
-            setDescription(event.target.value)
-          }
+          onChange={(event) => setDescription(event.target.value)}
           placeholder="What does this snippet do or when would you use it?"
           rows={4}
           disabled={isSubmitting}

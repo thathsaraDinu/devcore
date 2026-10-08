@@ -1,26 +1,22 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import type { Tag } from "../types/tag";
 
 type TagFilterProps = {
   tags: Tag[];
-  value: string;
-  onChange: (tagId: string) => void;
+  value: string[];
+  onChange: (tagIds: string[]) => void;
 };
 
-export default function TagFilter({
-  tags,
-  value,
-  onChange,
-}: TagFilterProps) {
+export default function TagFilter({ tags, value, onChange }: TagFilterProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const selectedTag = tags.find((tag) => tag.id === value);
+  const selectedTags = tags.filter((tag) => value.includes(tag.id));
 
   const filteredTags = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -29,22 +25,39 @@ export default function TagFilter({
       return tags;
     }
 
-    return tags.filter((tag) =>
-      tag.name.includes(normalizedQuery),
-    );
+    return tags.filter((tag) => tag.name.includes(normalizedQuery));
   }, [tags, query]);
 
-  function selectTag(tagId: string) {
-    onChange(tagId);
-    setQuery("");
-    setIsOpen(false);
+  function toggleTag(tagId: string) {
+    if (value.includes(tagId)) {
+      onChange(value.filter((id) => id !== tagId));
+    } else {
+      onChange([...value, tagId]);
+    }
   }
 
   function clearFilter() {
-    onChange("");
+    onChange([]);
     setQuery("");
     setIsOpen(false);
   }
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   return (
     <div ref={containerRef} className="relative">
@@ -54,14 +67,14 @@ export default function TagFilter({
         className="flex min-w-48 items-center justify-between gap-3 rounded-md border border-border bg-surface px-3 py-2.5 text-left text-sm text-text-primary transition-colors hover:border-border-hover"
       >
         <span className="truncate">
-          {selectedTag
-            ? `#${selectedTag.name}`
-            : "All tags"}
+          {selectedTags.length === 0
+            ? "All tags"
+            : selectedTags.length <= 2
+              ? selectedTags.map((tag) => `#${tag.name}`).join(", ")
+              : `${selectedTags.length} tags selected`}
         </span>
 
-        <span className="shrink-0 text-text-muted">
-          {isOpen ? "↑" : "↓"}
-        </span>
+        <span className="shrink-0 text-text-muted">{isOpen ? "↑" : "↓"}</span>
       </button>
 
       {isOpen && (
@@ -70,9 +83,7 @@ export default function TagFilter({
             <input
               type="search"
               value={query}
-              onChange={(event) =>
-                setQuery(event.target.value)
-              }
+              onChange={(event) => setQuery(event.target.value)}
               placeholder="Search tags..."
               autoFocus
               className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-text-primary outline-none placeholder:text-text-muted focus:border-accent"
@@ -92,14 +103,35 @@ export default function TagFilter({
               <button
                 key={tag.id}
                 type="button"
-                onClick={() => selectTag(tag.id)}
-                className={
-                  tag.id === value
-                    ? "w-full rounded-md bg-surface-hover px-3 py-2 text-left text-sm font-medium text-text-primary"
-                    : "w-full rounded-md px-3 py-2 text-left text-sm text-text-secondary transition-colors hover:bg-surface-hover hover:text-text-primary"
-                }
+                onClick={() => toggleTag(tag.id)}
+                className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-surface-hover"
               >
-                #{tag.name}
+                <span
+                  className={
+                    value.includes(tag.id)
+                      ? "font-medium text-text-primary"
+                      : "text-text-secondary"
+                  }
+                >
+                  #{tag.name}
+                </span>
+
+                {value.includes(tag.id) && (
+                  <svg
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    className="h-4 w-4 text-accent"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M16.25 5.75L8.125 13.875L4.375 10.125"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
               </button>
             ))}
 

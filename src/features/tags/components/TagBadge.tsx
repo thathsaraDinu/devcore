@@ -32,6 +32,34 @@ export default function TagBadge({
       />
 
       <span className="truncate">#{tag.name}</span>
+
+      {removable && onRemove && (
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            onRemove();
+          }}
+          disabled={disabled}
+          className="ml-0.5 shrink-0 rounded-sm p-0.5 text-text-muted transition-colors hover:bg-black/10 hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
+          aria-label={`Remove ${tag.name} tag`}
+        >
+          <svg
+            viewBox="0 0 20 20"
+            fill="none"
+            className="h-3 w-3"
+            aria-hidden="true"
+          >
+            <path
+              d="M5 5L15 15M15 5L5 15"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+      )}
     </span>
   );
 }

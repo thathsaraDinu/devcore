@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 import TagFilter from "@/features/tags/components/TagFilter";
+import TagBadge from "@/features/tags/components/TagBadge";
 import type { Tag } from "@/features/tags/types/tag";
 import TopicPicker from "@/features/topics/components/TopicPicker";
 import type { Topic } from "@/features/topics/types/topic";
@@ -30,7 +31,9 @@ export default function QuestionsBrowser({
   const [selectedTopicId, setSelectedTopicId] = useState("");
 
   const statusParam = searchParams.get("status");
-  const selectedTagId = searchParams.get("tag") ?? "";
+  const selectedTagIds = searchParams.getAll("tag");
+
+  const selectedTags = tags.filter((tag) => selectedTagIds.includes(tag.id));
 
   const selectedStatus: "ALL" | "OPEN" | "RESOLVED" =
     statusParam === "open"
@@ -56,7 +59,8 @@ export default function QuestionsBrowser({
       (question.topicId !== null && topicIds.includes(question.topicId));
 
     const matchesTag =
-      !selectedTagId || question.tags.some((tag) => tag.id === selectedTagId);
+      selectedTagIds.length === 0 ||
+      question.tags.some((tag) => selectedTagIds.includes(tag.id));
 
     return matchesSearch && matchesTopic && matchesTag;
   });
@@ -79,7 +83,7 @@ export default function QuestionsBrowser({
   const hasActiveFilters =
     normalizedQuery !== "" ||
     selectedTopicId !== "" ||
-    selectedTagId !== "" ||
+    selectedTagIds.length > 0 ||
     selectedStatus !== "ALL";
 
   function handleStatusChange(status: "ALL" | "OPEN" | "RESOLVED") {
@@ -98,14 +102,13 @@ export default function QuestionsBrowser({
     });
   }
 
-  function handleTagChange(tagId: string) {
+  function handleTagChange(tagIds: string[]) {
     const params = new URLSearchParams(searchParams.toString());
+    params.delete("tag");
 
-    if (tagId) {
-      params.set("tag", tagId);
-    } else {
-      params.delete("tag");
-    }
+    tagIds.forEach((tagId) => {
+      params.append("tag", tagId);
+    });
 
     const queryString = params.toString();
 
@@ -147,33 +150,53 @@ export default function QuestionsBrowser({
           <div className="w-full lg:w-56">
             <TagFilter
               tags={tags}
-              value={selectedTagId}
+              value={selectedTagIds}
               onChange={handleTagChange}
             />
           </div>
         </div>
 
-        <div className="mt-4 flex items-center justify-between gap-4 border-t border-border pt-3">
-          <p className="text-xs text-text-muted">
-            {questionsMatchingFilters.length}{" "}
-            {questionsMatchingFilters.length === 1 ? "question" : "questions"}
-            {hasActiveFilters &&
-            (normalizedQuery !== "" ||
-              selectedTopicId !== "" ||
-              selectedTagId !== "")
-              ? " matching your filters"
-              : ""}
-          </p>
-
-          {hasActiveFilters && (
-            <button
-              type="button"
-              onClick={handleClearFilters}
-              className="text-xs font-medium text-text-muted transition-colors hover:text-text-primary"
-            >
-              Clear filters
-            </button>
+        <div className="mt-4 space-y-3 border-t border-border pt-3">
+          {selectedTagIds.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {selectedTags.map((tag) => (
+                <TagBadge
+                  key={tag.id}
+                  tag={tag}
+                  removable
+                  onRemove={() => {
+                    const newTagIds = selectedTagIds.filter(
+                      (id) => id !== tag.id,
+                    );
+                    handleTagChange(newTagIds);
+                  }}
+                />
+              ))}
+            </div>
           )}
+
+          <div className="flex items-center justify-between gap-4">
+            <p className="text-xs text-text-muted">
+              {questionsMatchingFilters.length}{" "}
+              {questionsMatchingFilters.length === 1 ? "question" : "questions"}
+              {hasActiveFilters &&
+              (normalizedQuery !== "" ||
+                selectedTopicId !== "" ||
+                selectedTagIds.length > 0)
+                ? " matching your filters"
+                : ""}
+            </p>
+
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={handleClearFilters}
+                className="text-xs font-medium text-text-muted transition-colors hover:text-text-primary"
+              >
+                Clear filters
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="mt-4 flex flex-wrap gap-2">

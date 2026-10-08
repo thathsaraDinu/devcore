@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
 import { prisma } from "@/server/db/prisma";
 import { requireAccessibleTopic } from "@/server/topics/access";
@@ -68,13 +67,10 @@ export async function createSnippet(input: SnippetInput) {
   });
 
   revalidatePath("/snippets");
-  redirect("/snippets");
+  return { redirectUrl: "/snippets" };
 }
 
-export async function updateSnippet(
-  id: string,
-  input: SnippetInput,
-) {
+export async function updateSnippet(id: string, input: SnippetInput) {
   const user = await requireCurrentUser();
 
   const title = input.title.trim();
@@ -148,7 +144,7 @@ export async function updateSnippet(
 
   revalidatePath("/snippets");
   revalidatePath(`/snippets/${id}`);
-  redirect(`/snippets/${id}`);
+  return { redirectUrl: `/snippets/${id}` };
 }
 
 export async function deleteSnippet(id: string) {
@@ -175,5 +171,5 @@ export async function deleteSnippet(id: string) {
   });
 
   revalidatePath("/snippets");
-  redirect("/snippets");
+  return { redirectUrl: "/snippets" };
 }

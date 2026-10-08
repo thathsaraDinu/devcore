@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import type { JSONContent } from "@tiptap/react";
 
 import RichTextEditor from "@/components/editor/RichTextEditor";
@@ -51,6 +52,7 @@ export default function NoteEditor({
   tags,
   initialNote,
 }: NoteEditorProps) {
+  const router = useRouter();
   const [title, setTitle] = useState(initialNote?.title ?? "");
 
   const [content, setContent] = useState<JSONContent>(
@@ -103,22 +105,14 @@ export default function NoteEditor({
     };
 
     try {
-      if (isEditing) {
-        await updateNote(initialNote!.id, input);
-      } else {
-        await createNote(input);
+      const result = isEditing
+        ? await updateNote(initialNote!.id, input)
+        : await createNote(input);
+
+      if (result?.redirectUrl) {
+        router.replace(result.redirectUrl);
       }
     } catch (error) {
-      // Ignore redirect errors - they're expected for successful mutations
-      if (
-        error &&
-        typeof error === "object" &&
-        "digest" in error &&
-        typeof error.digest === "string" &&
-        error.digest.startsWith("NEXT_REDIRECT")
-      ) {
-        return;
-      }
       setErrors({
         content: "Something went wrong while saving the note.",
       });

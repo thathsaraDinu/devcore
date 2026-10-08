@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 import TagFilter from "@/features/tags/components/TagFilter";
+import TagBadge from "@/features/tags/components/TagBadge";
 import type { Tag } from "@/features/tags/types/tag";
 import TopicPicker from "@/features/topics/components/TopicPicker";
 import type { Topic } from "@/features/topics/types/topic";
@@ -29,7 +30,9 @@ export default function SnippetsBrowser({
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTopicId, setSelectedTopicId] = useState("");
 
-  const selectedTagId = searchParams.get("tag") ?? "";
+  const selectedTagIds = searchParams.getAll("tag");
+
+  const selectedTags = tags.filter((tag) => selectedTagIds.includes(tag.id));
 
   const normalizedQuery = searchQuery.trim().toLowerCase();
 
@@ -37,67 +40,43 @@ export default function SnippetsBrowser({
     ? getTopicDescendantIds(topics, selectedTopicId)
     : [];
 
-  const filteredSnippets = initialSnippets.filter(
-    (snippet) => {
-      const matchesSearch =
-        !normalizedQuery ||
-        snippet.title
-          .toLowerCase()
-          .includes(normalizedQuery) ||
-        snippet.language
-          .toLowerCase()
-          .includes(normalizedQuery) ||
-        snippet.code
-          .toLowerCase()
-          .includes(normalizedQuery) ||
-        (snippet.description
-          ?.toLowerCase()
-          .includes(normalizedQuery) ??
-          false);
+  const filteredSnippets = initialSnippets.filter((snippet) => {
+    const matchesSearch =
+      !normalizedQuery ||
+      snippet.title.toLowerCase().includes(normalizedQuery) ||
+      snippet.language.toLowerCase().includes(normalizedQuery) ||
+      snippet.code.toLowerCase().includes(normalizedQuery) ||
+      (snippet.description?.toLowerCase().includes(normalizedQuery) ?? false);
 
-      const matchesTopic =
-        !selectedTopicId ||
-        (snippet.topicId !== null &&
-          topicIds.includes(snippet.topicId));
+    const matchesTopic =
+      !selectedTopicId ||
+      (snippet.topicId !== null && topicIds.includes(snippet.topicId));
 
-      const matchesTag =
-        !selectedTagId ||
-        snippet.tags.some(
-          (tag) => tag.id === selectedTagId,
-        );
+    const matchesTag =
+      selectedTagIds.length === 0 ||
+      snippet.tags.some((tag) => selectedTagIds.includes(tag.id));
 
-      return (
-        matchesSearch &&
-        matchesTopic &&
-        matchesTag
-      );
-    },
-  );
+    return matchesSearch && matchesTopic && matchesTag;
+  });
 
   const hasActiveFilters =
     normalizedQuery !== "" ||
     selectedTopicId !== "" ||
-    selectedTagId !== "";
+    selectedTagIds.length > 0;
 
-  function handleTagChange(tagId: string) {
-    const params = new URLSearchParams(
-      searchParams.toString(),
-    );
+  function handleTagChange(tagIds: string[]) {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("tag");
 
-    if (tagId) {
-      params.set("tag", tagId);
-    } else {
-      params.delete("tag");
-    }
+    tagIds.forEach((tagId) => {
+      params.append("tag", tagId);
+    });
 
     const queryString = params.toString();
 
-    router.replace(
-      queryString
-        ? `/snippets?${queryString}`
-        : "/snippets",
-      { scroll: false },
-    );
+    router.replace(queryString ? `/snippets?${queryString}` : "/snippets", {
+      scroll: false,
+    });
   }
 
   function handleClearFilters() {
@@ -116,9 +95,7 @@ export default function SnippetsBrowser({
           <input
             type="search"
             value={searchQuery}
-            onChange={(event) =>
-              setSearchQuery(event.target.value)
-            }
+            onChange={(event) => setSearchQuery(event.target.value)}
             placeholder="Search snippets..."
             aria-label="Search snippets"
             className="min-w-0 flex-1 rounded-md border border-border bg-background px-3 py-2.5 text-sm text-text-primary outline-none transition-colors placeholder:text-text-muted focus:border-accent"
@@ -135,32 +112,48 @@ export default function SnippetsBrowser({
           <div className="w-full lg:w-56">
             <TagFilter
               tags={tags}
-              value={selectedTagId}
+              value={selectedTagIds}
               onChange={handleTagChange}
             />
           </div>
         </div>
 
-        <div className="mt-4 flex items-center justify-between gap-4 border-t border-border pt-3">
-          <p className="text-xs text-text-muted">
-            {filteredSnippets.length}{" "}
-            {filteredSnippets.length === 1
-              ? "snippet"
-              : "snippets"}
-            {hasActiveFilters
-              ? " matching your filters"
-              : ""}
-          </p>
-
-          {hasActiveFilters && (
-            <button
-              type="button"
-              onClick={handleClearFilters}
-              className="text-xs font-medium text-text-muted transition-colors hover:text-text-primary"
-            >
-              Clear filters
-            </button>
+        <div className="mt-4 space-y-3 border-t border-border pt-3">
+          {selectedTagIds.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {selectedTags.map((tag) => (
+                <TagBadge
+                  key={tag.id}
+                  tag={tag}
+                  removable
+                  onRemove={() => {
+                    const newTagIds = selectedTagIds.filter(
+                      (id) => id !== tag.id,
+                    );
+                    handleTagChange(newTagIds);
+                  }}
+                />
+              ))}
+            </div>
           )}
+
+          <div className="flex items-center justify-between gap-4">
+            <p className="text-xs text-text-muted">
+              {filteredSnippets.length}{" "}
+              {filteredSnippets.length === 1 ? "snippet" : "snippets"}
+              {hasActiveFilters ? " matching your filters" : ""}
+            </p>
+
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={handleClearFilters}
+                className="text-xs font-medium text-text-muted transition-colors hover:text-text-primary"
+              >
+                Clear filters
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
