@@ -36,7 +36,11 @@ export default function QuestionStatusButton({
       type="button"
       onClick={handleClick}
       disabled={isUpdating}
-      className="min-w-[160px] rounded-md border border-border px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:border-border-hover hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
+      className={
+        isResolved
+          ? "min-w-[160px] rounded-md border border-border px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:border-border-hover hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
+          : "min-w-[160px] rounded-md bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+      }
     >
       {isUpdating
         ? "Updating..."
