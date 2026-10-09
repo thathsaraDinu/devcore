@@ -344,7 +344,7 @@ background: var(--ds-border-hover);
   border-radius: 0.75rem;
   font-weight: 500;
   font-size: 0.75rem;
-  color: white;
+  color: rgb(221, 221, 221);
 }
 
 .brand-footer {
