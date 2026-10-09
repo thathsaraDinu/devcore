@@ -22,30 +22,28 @@ export default async function LoginPage() {
 
       <div className="relative z-10 mx-auto grid min-h-screen  lg:grid-cols-2">
         {/* Branding */}
-        <section className="flex flex-col justify-between border-b border-white/10 px-6 py-8 sm:px-10 sm:py-10 lg:border-b-0 lg:border-r lg:px-12 lg:py-12 xl:px-20">
-          <div className="brand-topline flex items-center gap-3 text-[0.65rem] tracking-[0.18em] text-muted-foreground sm:text-xs">
-            <span className="status-dot size-2 shrink-0 rounded-full bg-cyan-400 shadow-[0_0_16px_var(--cyan)]" />
+        <section className="brand-panel">
+          <div className="brand-topline">
+            <span className="status-dot" />
             <span>DEVCORE / KNOWLEDGE SYSTEM</span>
           </div>
 
-          <div className="brand-content my-12 max-w-2xl lg:my-0">
-            <p className="eyebrow mb-4 text-xs tracking-[0.18em] text-cyan-400 uppercase">
-              A calmer place to think.
-            </p>
+          <div className="brand-content">
+            <p className="eyebrow">A calmer place to think.</p>
 
-            <h1 className="text-4xl leading-[1.05] font-normal tracking-[-0.06em] sm:text-5xl md:text-6xl lg:text-6xl xl:text-7xl">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl xl:text-7xl">
               Your knowledge,
               <br />
-              <em className="text-violet-300">finally connected.</em>
+              <em>finally connected.</em>
             </h1>
 
-            <p className="brand-copy mt-6 max-w-lg text-sm leading-7 text-muted-foreground sm:mt-8 sm:text-base">
+            <p className="brand-copy">
               Keep notes, questions, snippets, and hard-won lessons in one
               beautiful learning place. Organize everything by topic and custom
               tags, then find the thread when you need it.
             </p>
 
-            <div className="feature-row mt-8 flex flex-wrap gap-x-5 gap-y-3 text-[0.65rem] tracking-[0.15em] text-violet-200 sm:mt-10 sm:gap-x-8 sm:text-xs">
+            <div className="feature-row">
               <span>NOTES</span>
               <span>QUESTIONS</span>
               <span>SNIPPETS</span>
@@ -53,10 +51,10 @@ export default async function LoginPage() {
             </div>
           </div>
 
-          <div className="brand-footer flex items-center gap-3 text-[0.6rem] tracking-[0.12em] text-muted-foreground sm:gap-4 sm:text-[0.65rem]">
-            <span className="shrink-0">© 2026 DEVCORE</span>
-            <span className="h-px min-w-4 flex-1 bg-white/15" />
-            <span className="shrink-0">EST. FOR CURIOUS MINDS</span>
+          <div className="brand-footer">
+            <span>© 2026 DEVCORE</span>
+            <span className="footer-line" />
+            <span>EST. FOR CURIOUS MINDS</span>
           </div>
         </section>
 
