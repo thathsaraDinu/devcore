@@ -319,14 +319,14 @@ background: var(--ds-border-hover);
 }
 
 .brand-content h1 em {
-  color: var(--cyan);
+  color: #b6a0ff;
   font-style: italic;
 }
 
 .brand-copy {
   max-width: 34rem;
   margin-top: 2rem;
-  color: var(--muted-ink);
+  color: rgb(221, 221, 221);
   font-size: 1.05rem;
   line-height: 1.75;
 }
@@ -344,7 +344,7 @@ background: var(--ds-border-hover);
   border-radius: 0.75rem;
   font-weight: 500;
   font-size: 0.75rem;
-  color: var(--ink);
+  color: white;
 }
 
 .brand-footer {
