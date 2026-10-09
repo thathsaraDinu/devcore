@@ -50,6 +50,9 @@
   --ds-radius-sm: 0.375rem;
   --ds-radius-md: 0.5rem;
   --ds-radius-lg: 0.75rem;
+
+   --muted-ink: #aaa6c5;
+  --cyan: #57d6ff;
 }
 
 @theme inline {
@@ -258,4 +261,88 @@ background: var(--ds-border-hover);
   float: left;
   height: 0;
   pointer-events: none;
+}
+
+.brand-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: clamp(1.5rem, 4vh, 3rem) clamp(2rem, 6vw, 7rem);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.brand-topline {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.brand-topline,
+.brand-footer,
+.feature-row {
+  color: #8e8aa8;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.status-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 16px var(--cyan);
+}
+
+.brand-content {
+  max-width: 40rem;
+}
+
+.eyebrow {
+  margin-bottom: 1rem;
+  color: var(--cyan);
+  font-size: 0.75rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.brand-content h1 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  letter-spacing: -0.06em;
+  line-height: 0.95;
+  font-size: clamp(3.5rem, 6vw, 6.5rem);
+}
+
+.brand-content h1 em {
+  color: #b6a0ff;
+  font-style: italic;
+}
+
+.brand-copy {
+  max-width: 34rem;
+  margin-top: 2rem;
+  color: var(--muted-ink);
+  font-size: 1.05rem;
+  line-height: 1.75;
+}
+
+.feature-row {
+  display: flex;
+  gap: 2rem;
+  margin-top: 3rem;
+  color: #d4ccff;
+}
+
+.brand-footer {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.footer-line {
+  height: 1px;
+  flex: 1;
+  background: rgba(255, 255, 255, 0.15);
 }
